@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Admin {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  role          String         @default("ADMIN")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+
+  @@map("admins")
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  adminId   String
+  admin     Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("refresh_tokens")
+}
+
+model Project {
+  id                 String   @id @default(cuid())
+  slug               String   @unique
+  title              String
+  summary            String
+  description        String
+  problem            String?
+  approach           String?
+  implementation     String?
+  architecture       String[] @default([])
+  technologies       String[] @default([])
+  results            String[] @default([])
+  technicalChallenges String[] @default([])
+  learnings          String[] @default([])
+  githubUrl          String?
+  demoUrl            String?
+  imageUrl           String?
+  category           String   @default("Other")
+  featured           Boolean  @default(false)
+  status             String   @default("draft")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([category, updatedAt])
+  @@index([status, updatedAt])
+  @@map("projects")
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  excerpt     String
+  content     String
+  category    String
+  tags        String[] @default([])
+  coverImageUrl String?
+  published   Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category, updatedAt])
+  @@index([published, publishedAt])
+  @@map("blog_posts")
+}
+
+model Experience {
+  id          String   @id @default(cuid())
+  company     String
+  role        String
+  location    String?
+  startDate   DateTime?
+  endDate     DateTime?
+  current     Boolean  @default(false)
+  description String
+  responsibilities String[] @default([])
+  technologies String[] @default([])
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("experiences")
+}
+
+model Education {
+  id          String   @id @default(cuid())
+  school      String
+  degree      String
+  field       String?
+  location    String?
+  startDate   DateTime?
+  endDate     DateTime?
+  description String?
+  coursework  String[] @default([])
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("education")
+}
+
+model Skill {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  category  String
+  featured  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("skills")
+}
+
+model ResearchItem {
+  id             String   @id @default(cuid())
+  title          String
+  summary        String
+  area           String?
+  methodology    String?
+  technologies   String[] @default([])
+  publicationDate DateTime?
+  publicationUrl String?
+  paperUrl       String?
+  githubUrl      String?
+  notes          String?
+  imageUrl       String?
+  fileUrl        String?
+  status         String   @default("draft")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("research_items")
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  issuer      String?
+  awardDate   DateTime?
+  credentialUrl String?
+  imageUrl    String?
+  documentUrl String?
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("achievements")
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String?
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("services")
+}
+
+model PortfolioProfile {
+  id              String   @id @default("primary")
+  name            String
+  title           String
+  headline        String
+  bio             String
+  location        String?
+  email           String?
+  github          String?
+  linkedin        String?
+  profileImageUrl String?
+  resumeUrl       String?
+  socials         Json     @default("[]")
+  updatedAt       DateTime @updatedAt
+
+  @@map("portfolio_profile")
+}
+
+model UploadAsset {
+  id           String   @id @default(cuid())
+  originalName String
+  filename     String   @unique
+  mimeType     String
+  size         Int
+  url          String   @unique
+  purpose      String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("upload_assets")
+}

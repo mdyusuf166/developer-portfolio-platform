@@ -1,0 +1,276 @@
+openapi: 3.0.3
+info:
+  title: Portfolio API
+  version: 1.0.0
+  description: |
+    The implemented HTTP API for the portfolio application. All successful responses use
+    `{ success: true, data, meta }`; `meta` includes `requestId` and `timestamp`.
+    Errors use `{ success: false, error: { code, message, details? } }`.
+servers:
+  - url: /api/v1
+tags:
+  - name: Public
+  - name: Authentication
+  - name: Admin content
+paths:
+  /health:
+    get:
+      tags: [Public]
+      summary: Health and database status
+      responses:
+        '200': { $ref: '#/components/responses/Health' }
+        '503': { $ref: '#/components/responses/Error' }
+  /runtime:
+    get:
+      tags: [Public]
+      summary: Runtime metadata
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+  /profile:
+    get:
+      tags: [Public]
+      summary: Portfolio profile snapshot
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '503': { $ref: '#/components/responses/Error' }
+  /projects:
+    get:
+      tags: [Public]
+      summary: Published portfolio projects
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '503': { $ref: '#/components/responses/Error' }
+  /projects/{slug}:
+    get:
+      tags: [Public]
+      summary: Published project case study by slug
+      parameters:
+        - { in: path, name: slug, required: true, schema: { type: string } }
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '404': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Bootstrap an ADMIN account and issue tokens
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RegisterInput' } } } }
+      responses:
+        '201': { $ref: '#/components/responses/AuthSuccess' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Sign in an ADMIN account
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LoginInput' } } } }
+      responses:
+        '200': { $ref: '#/components/responses/AuthSuccess' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Rotate a refresh token
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RefreshTokenInput' } } } }
+      responses:
+        '200': { $ref: '#/components/responses/AuthSuccess' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Revoke a refresh token
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RefreshTokenInput' } } } }
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '400': { $ref: '#/components/responses/Error' }
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Current authenticated ADMIN
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /admin/projects:
+    get: { $ref: '#/components/x-admin-list/projectList' }
+    post: { $ref: '#/components/x-admin-create/Project' }
+  /admin/uploads:
+    get:
+      tags: [Admin content]
+      summary: List uploaded media metadata
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Admin content]
+      summary: Upload a file (JPEG, PNG, WebP, SVG, or PDF; maximum 10 MB)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+                purpose: { type: string }
+      responses:
+        '201': { $ref: '#/components/responses/Success' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '413': { $ref: '#/components/responses/Error' }
+        '415': { $ref: '#/components/responses/Error' }
+  /admin/uploads/{id}:
+    delete:
+      tags: [Admin content]
+      summary: Delete an uploaded media file and metadata
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /admin/profile:
+    get:
+      tags: [Admin content]
+      summary: Read the portfolio profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Admin content]
+      summary: Create or replace the portfolio profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+    patch:
+      tags: [Admin content]
+      summary: Update the portfolio profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+  /admin/projects/{id}:
+    get: { $ref: '#/components/x-admin-item/get' }
+    patch: { $ref: '#/components/x-admin-update/Project' }
+    delete: { $ref: '#/components/x-admin-item/delete' }
+  /admin/skills:
+    get: { $ref: '#/components/x-admin-list/skillList' }
+    post: { $ref: '#/components/x-admin-create/Skill' }
+  /admin/skills/{id}:
+    get: { $ref: '#/components/x-admin-item/get' }
+    patch: { $ref: '#/components/x-admin-update/Skill' }
+    delete: { $ref: '#/components/x-admin-item/delete' }
+  /admin/experience:
+    get: { $ref: '#/components/x-admin-list/experienceList' }
+    post: { $ref: '#/components/x-admin-create/Experience' }
+  /admin/experience/{id}:
+    get: { $ref: '#/components/x-admin-item/get' }
+    patch: { $ref: '#/components/x-admin-update/Experience' }
+    delete: { $ref: '#/components/x-admin-item/delete' }
+  /admin/education:
+    get: { $ref: '#/components/x-admin-list/educationList' }
+    post: { $ref: '#/components/x-admin-create/Education' }
+  /admin/education/{id}:
+    get: { $ref: '#/components/x-admin-item/get' }
+    patch: { $ref: '#/components/x-admin-update/Education' }
+    delete: { $ref: '#/components/x-admin-item/delete' }
+  /admin/research:
+    get: { $ref: '#/components/x-admin-list/researchList' }
+    post: { $ref: '#/components/x-admin-create/ResearchItem' }
+  /admin/research/{id}:
+    get: { $ref: '#/components/x-admin-item/get' }
+    patch: { $ref: '#/components/x-admin-update/ResearchItem' }
+    delete: { $ref: '#/components/x-admin-item/delete' }
+  /admin/achievements:
+    get: { $ref: '#/components/x-admin-list/achievementList' }
+    post: { $ref: '#/components/x-admin-create/Achievement' }
+  /admin/achievements/{id}:
+    get: { $ref: '#/components/x-admin-item/get' }
+    patch: { $ref: '#/components/x-admin-update/Achievement' }
+    delete: { $ref: '#/components/x-admin-item/delete' }
+  /admin/services:
+    get: { $ref: '#/components/x-admin-list/serviceList' }
+    post: { $ref: '#/components/x-admin-create/Service' }
+  /admin/services/{id}:
+    get: { $ref: '#/components/x-admin-item/get' }
+    patch: { $ref: '#/components/x-admin-update/Service' }
+    delete: { $ref: '#/components/x-admin-item/delete' }
+  /admin/blog-posts:
+    get: { $ref: '#/components/x-admin-list/blogPostList' }
+    post: { $ref: '#/components/x-admin-create/BlogPost' }
+  /admin/blog-posts/{id}:
+    get: { $ref: '#/components/x-admin-item/get' }
+    patch: { $ref: '#/components/x-admin-update/BlogPost' }
+    delete: { $ref: '#/components/x-admin-item/delete' }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT, description: ADMIN role required for every `/admin/*` route and `/auth/me`. }
+  parameters:
+    id: { name: id, in: path, required: true, schema: { type: string } }
+    page: { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+    limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 10 } }
+    search: { name: search, in: query, schema: { type: string, maxLength: 200 } }
+    sortOrder: { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc], default: desc } }
+  schemas:
+    SuccessEnvelope: { type: object, required: [success, data, meta], properties: { success: { type: boolean, enum: [true] }, data: {}, meta: { $ref: '#/components/schemas/Meta' } } }
+    Meta: { type: object, properties: { requestId: { type: string }, timestamp: { type: string, format: date-time }, page: { type: integer }, limit: { type: integer }, total: { type: integer }, totalPages: { type: integer }, hasNextPage: { type: boolean }, hasPreviousPage: { type: boolean } } }
+    ErrorEnvelope: { type: object, required: [success, error], properties: { success: { type: boolean, enum: [false] }, error: { type: object, required: [code, message], properties: { code: { type: string }, message: { type: string }, details: {} } } } }
+    RegisterInput: { type: object, required: [name, email, password, bootstrapSecret], properties: { name: { type: string, minLength: 2, maxLength: 120 }, email: { type: string, format: email }, password: { type: string, minLength: 8, maxLength: 128 }, bootstrapSecret: { type: string, minLength: 1 } } }
+    LoginInput: { type: object, required: [email, password], properties: { email: { type: string, format: email }, password: { type: string, minLength: 8, maxLength: 128 } } }
+    RefreshTokenInput: { type: object, required: [refreshToken], properties: { refreshToken: { type: string, minLength: 16 } } }
+    AuthData: { type: object, properties: { admin: { type: object, properties: { id: { type: string }, name: { type: string }, email: { type: string, format: email }, role: { type: string } } }, accessToken: { type: string }, refreshToken: { type: string }, tokenType: { type: string, enum: [Bearer] } } }
+    Project: { type: object, required: [slug, title, summary, description], properties: { slug: { type: string, minLength: 1, maxLength: 120 }, title: { type: string, minLength: 1, maxLength: 200 }, summary: { type: string, minLength: 1, maxLength: 500 }, description: { type: string, minLength: 1 }, category: { type: string, maxLength: 120, default: Other }, featured: { type: boolean, default: false }, status: { type: string, enum: [draft, published, archived], default: draft } } }
+    Skill: { type: object, required: [name, category], properties: { name: { type: string, minLength: 1, maxLength: 120 }, category: { type: string, minLength: 1, maxLength: 120 }, featured: { type: boolean, default: false } } }
+    Experience: { type: object, required: [company, role, description], properties: { company: { type: string, minLength: 1, maxLength: 200 }, role: { type: string, minLength: 1, maxLength: 200 }, location: { type: string, minLength: 1, maxLength: 200, default: Remote }, startDate: { type: string, format: date-time, nullable: true }, endDate: { type: string, format: date-time, nullable: true }, current: { type: boolean, default: false }, description: { type: string, minLength: 1 } } }
+    Education: { type: object, required: [school, degree], properties: { school: { type: string, minLength: 1, maxLength: 200 }, degree: { type: string, minLength: 1, maxLength: 200 }, field: { type: string, maxLength: 200, nullable: true }, location: { type: string, maxLength: 200, nullable: true }, startDate: { type: string, format: date-time, nullable: true }, endDate: { type: string, format: date-time, nullable: true }, description: { type: string, maxLength: 2000, nullable: true } } }
+    ResearchItem: { type: object, required: [title, summary], properties: { title: { type: string, minLength: 1, maxLength: 200 }, summary: { type: string, minLength: 1, maxLength: 1000 }, status: { type: string, enum: [draft, published, archived], default: draft } } }
+    Achievement: { type: object, required: [title, description], properties: { title: { type: string, minLength: 1, maxLength: 200 }, description: { type: string, minLength: 1, maxLength: 2000 }, issuer: { type: string, maxLength: 200, nullable: true }, awardDate: { type: string, format: date-time, nullable: true } } }
+    Service: { type: object, required: [title, description], properties: { title: { type: string, minLength: 1, maxLength: 200 }, description: { type: string, minLength: 1, maxLength: 2000 }, category: { type: string, maxLength: 120, nullable: true } } }
+    BlogPost: { type: object, required: [slug, title, excerpt, content, category], properties: { slug: { type: string, minLength: 1, maxLength: 120 }, title: { type: string, minLength: 1, maxLength: 200 }, excerpt: { type: string, minLength: 1, maxLength: 500 }, content: { type: string, minLength: 1 }, category: { type: string, minLength: 1, maxLength: 120 }, published: { type: boolean, default: false }, publishedAt: { type: string, format: date-time, nullable: true } } }
+  responses:
+    Success: { description: Successful response, content: { application/json: { schema: { $ref: '#/components/schemas/SuccessEnvelope' } } } }
+    AuthSuccess: { description: Successful authentication response, content: { application/json: { schema: { allOf: [{ $ref: '#/components/schemas/SuccessEnvelope' }, { type: object, properties: { data: { $ref: '#/components/schemas/AuthData' } } }] } } } }
+    Health: { description: Healthy service, content: { application/json: { schema: { $ref: '#/components/schemas/SuccessEnvelope' } } } }
+    Error: { description: Structured application error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorEnvelope' } } } }
+  x-admin-item:
+    get: { tags: [Admin content], summary: Get an item by id, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/id' }], responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' }, '403': { $ref: '#/components/responses/Error' }, '404': { $ref: '#/components/responses/Error' } } }
+    delete: { tags: [Admin content], summary: Delete an item by id, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/id' }], responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' }, '403': { $ref: '#/components/responses/Error' }, '404': { $ref: '#/components/responses/Error' } } }
+  x-admin-create:
+    Project: { tags: [Admin content], summary: Create a project, security: [{ bearerAuth: [] }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Project' } } } }, responses: { '201': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' }, '401': { $ref: '#/components/responses/Error' }, '403': { $ref: '#/components/responses/Error' }, '409': { $ref: '#/components/responses/Error' } } }
+    Skill: { tags: [Admin content], summary: Create a skill, security: [{ bearerAuth: [] }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Skill' } } } }, responses: { '201': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' }, '401': { $ref: '#/components/responses/Error' }, '403': { $ref: '#/components/responses/Error' }, '409': { $ref: '#/components/responses/Error' } } }
+    Experience: { tags: [Admin content], summary: Create experience, security: [{ bearerAuth: [] }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Experience' } } } }, responses: { '201': { $ref: '#/components/responses/Success' } } }
+    Education: { tags: [Admin content], summary: Create education, security: [{ bearerAuth: [] }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Education' } } } }, responses: { '201': { $ref: '#/components/responses/Success' } } }
+    ResearchItem: { tags: [Admin content], summary: Create research item, security: [{ bearerAuth: [] }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResearchItem' } } } }, responses: { '201': { $ref: '#/components/responses/Success' } } }
+    Achievement: { tags: [Admin content], summary: Create achievement, security: [{ bearerAuth: [] }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Achievement' } } } }, responses: { '201': { $ref: '#/components/responses/Success' } } }
+    Service: { tags: [Admin content], summary: Create service, security: [{ bearerAuth: [] }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Service' } } } }, responses: { '201': { $ref: '#/components/responses/Success' } } }
+    BlogPost: { tags: [Admin content], summary: Create blog post, security: [{ bearerAuth: [] }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/BlogPost' } } } }, responses: { '201': { $ref: '#/components/responses/Success' }, '409': { $ref: '#/components/responses/Error' } } }
+  x-admin-update:
+    Project: { tags: [Admin content], summary: Update a project, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/id' }], requestBody: { required: true, content: { application/json: { schema: { allOf: [{ $ref: '#/components/schemas/Project' }] } } } }, responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' }, '404': { $ref: '#/components/responses/Error' } } }
+    Skill: { tags: [Admin content], summary: Update a skill, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/id' }], requestBody: { required: true, content: { application/json: { schema: { allOf: [{ $ref: '#/components/schemas/Skill' }] } } } }, responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' }, '404': { $ref: '#/components/responses/Error' } } }
+    Experience: { tags: [Admin content], summary: Update experience, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/id' }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Experience' } } } }, responses: { '200': { $ref: '#/components/responses/Success' } } }
+    Education: { tags: [Admin content], summary: Update education, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/id' }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Education' } } } }, responses: { '200': { $ref: '#/components/responses/Success' } } }
+    ResearchItem: { tags: [Admin content], summary: Update research item, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/id' }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResearchItem' } } } }, responses: { '200': { $ref: '#/components/responses/Success' } } }
+    Achievement: { tags: [Admin content], summary: Update achievement, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/id' }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Achievement' } } } }, responses: { '200': { $ref: '#/components/responses/Success' } } }
+    Service: { tags: [Admin content], summary: Update service, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/id' }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Service' } } } }, responses: { '200': { $ref: '#/components/responses/Success' } } }
+    BlogPost: { tags: [Admin content], summary: Update blog post, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/id' }], requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/BlogPost' } } } }, responses: { '200': { $ref: '#/components/responses/Success' }, '409': { $ref: '#/components/responses/Error' } } }
+  x-admin-list:
+    projectList: { tags: [Admin content], summary: List projects, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/page' }, { $ref: '#/components/parameters/limit' }, { $ref: '#/components/parameters/search' }, { $ref: '#/components/parameters/sortOrder' }, { name: sortBy, in: query, schema: { type: string, enum: [updatedAt, createdAt, title, category, status] } }, { name: category, in: query, schema: { type: string, minLength: 1, maxLength: 120 } }, { name: featured, in: query, schema: { type: boolean } }, { name: status, in: query, schema: { type: string, enum: [draft, published, archived] } }], responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' }, '401': { $ref: '#/components/responses/Error' }, '403': { $ref: '#/components/responses/Error' } } }
+    skillList: { tags: [Admin content], summary: List skills, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/page' }, { $ref: '#/components/parameters/limit' }, { $ref: '#/components/parameters/search' }, { name: sortBy, in: query, schema: { type: string, enum: [featured, name, category, createdAt] } }, { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc] } }, { name: category, in: query, schema: { type: string, minLength: 1, maxLength: 120 } }, { name: featured, in: query, schema: { type: boolean } }], responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' } } }
+    experienceList: { tags: [Admin content], summary: List experience, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/page' }, { $ref: '#/components/parameters/limit' }, { $ref: '#/components/parameters/search' }, { name: sortBy, in: query, schema: { type: string, enum: [startDate, endDate, company, role, updatedAt] } }, { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc] } }, { name: company, in: query, schema: { type: string, maxLength: 200 } }, { name: role, in: query, schema: { type: string, maxLength: 200 } }, { name: current, in: query, schema: { type: boolean } }], responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' } } }
+    educationList: { tags: [Admin content], summary: List education, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/page' }, { $ref: '#/components/parameters/limit' }, { $ref: '#/components/parameters/search' }, { name: sortBy, in: query, schema: { type: string, enum: [startDate, endDate, school, degree, updatedAt] } }, { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc] } }, { name: school, in: query, schema: { type: string, maxLength: 200 } }, { name: degree, in: query, schema: { type: string, maxLength: 200 } }], responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' } } }
+    researchList: { tags: [Admin content], summary: List research items, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/page' }, { $ref: '#/components/parameters/limit' }, { $ref: '#/components/parameters/search' }, { name: sortBy, in: query, schema: { type: string, enum: [createdAt, updatedAt, title, status] } }, { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc] } }, { name: status, in: query, schema: { type: string, enum: [draft, published, archived] } }], responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' } } }
+    achievementList: { tags: [Admin content], summary: List achievements, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/page' }, { $ref: '#/components/parameters/limit' }, { $ref: '#/components/parameters/search' }, { name: sortBy, in: query, schema: { type: string, enum: [awardDate, title, issuer, createdAt] } }, { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc] } }, { name: issuer, in: query, schema: { type: string, maxLength: 200 } }], responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' } } }
+    serviceList: { tags: [Admin content], summary: List services, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/page' }, { $ref: '#/components/parameters/limit' }, { $ref: '#/components/parameters/search' }, { name: sortBy, in: query, schema: { type: string, enum: [title, category, createdAt, updatedAt] } }, { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc] } }, { name: category, in: query, schema: { type: string, maxLength: 120 } }], responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' } } }
+    blogPostList: { tags: [Admin content], summary: List blog posts, security: [{ bearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/page' }, { $ref: '#/components/parameters/limit' }, { $ref: '#/components/parameters/search' }, { name: sortBy, in: query, schema: { type: string, enum: [publishedAt, updatedAt, createdAt, title, category] } }, { name: sortOrder, in: query, schema: { type: string, enum: [asc, desc] } }, { name: category, in: query, schema: { type: string, maxLength: 120 } }, { name: published, in: query, schema: { type: boolean } }], responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' } } }
