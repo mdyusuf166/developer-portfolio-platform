@@ -27,7 +27,7 @@ export function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden min-w-0 flex-1 items-center justify-end gap-5 lg:flex xl:gap-6" aria-label="Main navigation">
+        <nav className="hidden min-w-0 flex-1 items-center justify-end gap-5 2xl:flex" aria-label="Main navigation">
           {profile.navigation.map((item) => (
             <NavLink key={item.href} to={item.href} end={item.href === '/'} className={({ isActive }) => `whitespace-nowrap text-[0.82rem] transition-colors hover:text-primary ${isActive ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
               {item.label}
@@ -37,10 +37,10 @@ export function Navbar() {
 
         <div className="flex shrink-0 items-center gap-1">
           <ThemeToggle />
-          <Link to="/contact" className="hidden items-center gap-1.5 border-b border-primary px-1 py-2 text-sm font-semibold text-primary transition-colors hover:border-accent hover:text-accent xl:inline-flex">
+          <Link to="/contact" className="hidden items-center gap-1.5 border-b border-primary px-1 py-2 text-sm font-semibold text-primary transition-colors hover:border-accent hover:text-accent-foreground xl:inline-flex">
             Let&apos;s talk <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </Link>
-          <button type="button" className="grid h-11 w-11 place-items-center text-foreground lg:hidden" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((current) => !current)}>
+          <button type="button" className="grid h-11 w-11 place-items-center text-foreground 2xl:hidden" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((current) => !current)}>
             {open ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
           </button>
         </div>
@@ -48,7 +48,7 @@ export function Navbar() {
 
       <AnimatePresence initial={false}>
         {open ? (
-          <motion.div id="mobile-menu" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden border-t border-border bg-background lg:hidden">
+          <motion.div id="mobile-menu" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden border-t border-border bg-background 2xl:hidden">
             <nav aria-label="Mobile navigation" className="mx-auto grid max-w-7xl grid-cols-2 px-5 py-4 sm:px-8">
               {profile.navigation.map((item) => (
                 <NavLink key={item.href} to={item.href} end={item.href === '/'} onClick={() => setOpen(false)} className={({ isActive }) => `border-b border-border px-2 py-3 text-sm ${isActive ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>

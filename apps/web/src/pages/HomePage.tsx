@@ -43,7 +43,7 @@ export function HomePage() {
           <h2 id="current-focus-heading" className="mt-4 font-display text-3xl font-medium leading-tight text-foreground">Questions at the intersection of learning systems and useful software.</h2>
           <p className="mt-5 text-sm leading-7 text-muted-foreground">{profile.about}</p>
           <ul className="mt-8 divide-y divide-border border-y border-border">
-            {profile.researchInterests.map((interest, index) => <li key={interest} className="flex items-center gap-4 py-3.5"><span className="font-mono text-xs text-accent">0{index + 1}</span><span className="text-sm font-medium text-foreground">{interest}</span></li>)}
+            {profile.researchInterests.map((interest, index) => <li key={interest} className="flex items-center gap-4 py-3.5"><span className="font-mono text-xs text-accent-foreground">0{index + 1}</span><span className="text-sm font-medium text-foreground">{interest}</span></li>)}
           </ul>
           <Link to="/research" className="mt-5 inline-flex min-h-10 items-center gap-2 text-sm text-link">Explore research interests <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
         </aside>
@@ -58,7 +58,7 @@ export function HomePage() {
           <div className="divide-y divide-border border-y border-border">
             {selectedProjects.map((project, index) => (
               <article key={project.slug} className="grid gap-4 py-6 md:grid-cols-[4rem_minmax(0,1fr)_auto] md:items-start md:gap-7 md:py-8">
-                <span className="font-mono text-sm text-accent">0{index + 1}</span>
+                <span className="font-mono text-sm text-accent-foreground">0{index + 1}</span>
                 <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(10rem,0.55fr)] sm:items-start">
                   <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">{project.category}</p><h3 className="mt-2 font-display text-2xl font-medium text-foreground">{project.title}</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{project.shortDescription}</p></div>
                   {project.image ? <img className="aspect-[16/10] w-full object-cover" src={project.image.src} alt={project.image.alt} loading="lazy" /> : null}

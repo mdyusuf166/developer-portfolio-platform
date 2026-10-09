@@ -16,6 +16,7 @@
   --border: 220 215 206;
   --card: 251 249 244;
   --accent: 193 110 75;
+  --accent-foreground: 141 72 46;
   --success: 49 88 70;
   --warning: 151 91 42;
   --destructive: 155 55 49;
@@ -40,6 +41,7 @@ html.dark {
   --border: 68 76 65;
   --card: 35 42 36;
   --accent: 220 145 111;
+  --accent-foreground: 220 145 111;
   --success: 166 194 164;
   --warning: 232 183 113;
   --destructive: 236 143 132;

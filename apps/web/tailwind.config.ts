@@ -16,6 +16,7 @@ export default {
         border: 'rgb(var(--border) / <alpha-value>)',
         card: 'rgb(var(--card) / <alpha-value>)',
         accent: 'rgb(var(--accent) / <alpha-value>)',
+        'accent-foreground': 'rgb(var(--accent-foreground) / <alpha-value>)',
         success: 'rgb(var(--success) / <alpha-value>)',
         warning: 'rgb(var(--warning) / <alpha-value>)',
         destructive: 'rgb(var(--destructive) / <alpha-value>)'

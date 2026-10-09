@@ -12,7 +12,7 @@ export function SkillsPage() {
         <div className="divide-y divide-border border-b border-border">
           {profile.skills.map((group, index) => (
             <section key={group.category} className="grid gap-4 py-7 sm:grid-cols-[minmax(12rem,0.6fr)_1.4fr] sm:gap-8 md:py-9">
-              <div className="flex items-start gap-4"><span className="font-mono text-xs text-accent">0{index + 1}</span><h2 className="font-display text-2xl font-medium">{group.category}</h2></div>
+              <div className="flex items-start gap-4"><span className="font-mono text-xs text-accent-foreground">0{index + 1}</span><h2 className="font-display text-2xl font-medium">{group.category}</h2></div>
               <ul className="flex flex-wrap gap-x-2 gap-y-2">{group.items.map((skill) => <li key={skill} className="border border-border bg-card px-3 py-2 text-sm text-foreground">{skill}</li>)}</ul>
             </section>
           ))}

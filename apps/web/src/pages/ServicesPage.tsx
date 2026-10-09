@@ -13,11 +13,11 @@ export function ServicesPage() {
 
         {isLoading ? <p role="status" className="text-sm text-muted-foreground">Loading focus areas...</p> : profile.services.length ? (
           <div className="divide-y divide-border border-b border-border">
-            {profile.services.map((service, index) => <article key={service.id} className="grid gap-4 py-7 sm:grid-cols-[3rem_minmax(12rem,0.7fr)_1.3fr] sm:gap-8"><span className="font-mono text-sm text-accent">{String(index + 1).padStart(2, '0')}</span><div><p className="eyebrow">{service.category ?? 'Area of interest'}</p><h2 className="mt-2 font-display text-2xl font-medium">{service.title}</h2></div><p className="text-sm leading-7 text-muted-foreground">{service.description}</p></article>)}
+            {profile.services.map((service, index) => <article key={service.id} className="grid gap-4 py-7 sm:grid-cols-[3rem_minmax(12rem,0.7fr)_1.3fr] sm:gap-8"><span className="font-mono text-sm text-accent-foreground">{String(index + 1).padStart(2, '0')}</span><div><p className="eyebrow">{service.category ?? 'Area of interest'}</p><h2 className="mt-2 font-display text-2xl font-medium">{service.title}</h2></div><p className="text-sm leading-7 text-muted-foreground">{service.description}</p></article>)}
           </div>
         ) : profile.researchInterests.length ? (
           <div className="divide-y divide-border border-b border-border">
-            {profile.researchInterests.map((interest, index) => <article key={interest} className="grid gap-4 py-6 sm:grid-cols-[3rem_minmax(12rem,0.7fr)_1.3fr] sm:gap-8"><span className="font-mono text-sm text-accent">{String(index + 1).padStart(2, '0')}</span><h2 className="font-display text-2xl font-medium">{interest}</h2><p className="text-sm leading-7 text-muted-foreground">A current area of technical curiosity.</p></article>)}
+            {profile.researchInterests.map((interest, index) => <article key={interest} className="grid gap-4 py-6 sm:grid-cols-[3rem_minmax(12rem,0.7fr)_1.3fr] sm:gap-8"><span className="font-mono text-sm text-accent-foreground">{String(index + 1).padStart(2, '0')}</span><h2 className="font-display text-2xl font-medium">{interest}</h2><p className="text-sm leading-7 text-muted-foreground">A current area of technical curiosity.</p></article>)}
           </div>
         ) : (
           <EmptyState title={error ? 'Focus areas unavailable' : 'No focus areas listed'} description={error || 'Technical interests will be listed here when confirmed.'} />

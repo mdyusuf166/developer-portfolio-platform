@@ -2,18 +2,22 @@ import { ArrowLeft } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 import { PageMeta } from '../components/common/PageMeta';
+import { LoadingState } from '../components/common/LoadingState';
 import { usePublicPortfolio } from '../hooks/usePublicPortfolio';
 
 export function BlogPostPage() {
-  const { profile } = usePublicPortfolio();
+  const { profile, isLoading, error } = usePublicPortfolio();
   const { slug } = useParams();
   const post = profile.blogPosts.find((item) => item.slug === slug);
+
+  if (!post && isLoading) return <LoadingState message="Loading article..." />;
 
   if (!post) {
     return (
       <section className="flex min-h-[45vh] flex-col items-start justify-center py-12">
-        <p className="eyebrow">Article</p>
-        <h1 className="mt-4 font-display text-4xl font-medium">Article not found.</h1>
+        <p className="eyebrow">{error ? 'Article unavailable' : 'Article'}</p>
+        <h1 className="mt-4 font-display text-4xl font-medium">{error ? 'This article could not be loaded.' : 'Article not found.'}</h1>
+        {error ? <p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">Please try again later.</p> : null}
         <Link className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm text-link" to="/blog"><ArrowLeft className="h-4 w-4" /> Back to blog</Link>
       </section>
     );

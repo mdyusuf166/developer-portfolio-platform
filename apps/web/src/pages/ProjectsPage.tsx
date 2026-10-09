@@ -34,7 +34,7 @@ export function ProjectsPage() {
             <div className="divide-y divide-border border-b border-border">
               {visibleProjects.map((project, index) => (
                 <article key={project.slug} className="grid gap-5 py-7 md:grid-cols-[3rem_minmax(0,1fr)_minmax(14rem,0.8fr)] md:gap-8 md:py-9">
-                  <span className="font-mono text-sm text-accent">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="font-mono text-sm text-accent-foreground">{String(index + 1).padStart(2, '0')}</span>
                   <div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary"><span>{project.category}</span>{project.status ? <><span aria-hidden="true">/</span><span className="text-muted-foreground">{project.status}</span></> : null}</div>
                     <h2 className="mt-3 font-display text-3xl font-medium leading-tight text-foreground">{project.title}</h2>

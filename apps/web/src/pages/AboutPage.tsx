@@ -21,7 +21,7 @@ export function AboutPage() {
           </div>
           <aside className="h-fit border-t border-primary pt-5">
             <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Current areas of curiosity</h2>
-            <ul className="mt-4 divide-y divide-border border-y border-border">{profile.aboutHighlights.map((item, index) => <li key={item} className="flex gap-4 py-3"><span className="font-mono text-xs text-accent">0{index + 1}</span><span className="text-sm text-foreground">{item}</span></li>)}</ul>
+            <ul className="mt-4 divide-y divide-border border-y border-border">{profile.aboutHighlights.map((item, index) => <li key={item} className="flex gap-4 py-3"><span className="font-mono text-xs text-accent-foreground">0{index + 1}</span><span className="text-sm text-foreground">{item}</span></li>)}</ul>
           </aside>
         </div>
         <div className="grid gap-6 border-t border-border pt-8 sm:grid-cols-3">
