@@ -7,39 +7,25 @@ import { usePublicPortfolio } from '../../hooks/usePublicPortfolio';
 export function Footer() {
   const { profile } = usePublicPortfolio();
   return (
-    <footer className="border-t border-border bg-card/60">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+    <footer className="border-t border-border bg-muted/50">
+      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-10 sm:px-8">
+        <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
           <div className="space-y-2">
-            <p className="text-lg font-semibold tracking-tight text-foreground">{profile.name}</p>
-            <p className="text-sm text-muted-foreground">{profile.title}</p>
+            <p className="font-display text-2xl font-medium text-foreground">{profile.name}</p>
+            <p className="text-sm text-muted-foreground">{profile.title} · {profile.shortBio}</p>
           </div>
-
-          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-            {profile.navigation.slice(0, 6).map((item) => (
-              <Link key={item.href} to={item.href} className="transition-colors hover:text-foreground">
-                {item.label}
-              </Link>
-            ))}
-          </div>
+          <nav aria-label="Footer navigation" className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 text-sm text-muted-foreground">
+            {profile.navigation.slice(0, 8).map((item) => <Link key={item.href} to={item.href} className="min-h-8 transition-colors hover:text-primary">{item.label}</Link>)}
+          </nav>
         </div>
-
-        <div className="flex justify-end border-t border-border pt-5 text-sm text-muted-foreground">
-          <div>© {new Date().getFullYear()} {profile.name}.</div>
-        </div>
-      </div>
-
-      <div className="border-t border-border/80 bg-background/70">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 text-xs text-muted-foreground sm:px-6 lg:px-8">
-          <span>All rights reserved.</span>
-          <Button asChild variant="ghost" size="sm" className="h-8 px-2">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5 text-xs text-muted-foreground">
+          <span>© {new Date().getFullYear()} {profile.name}</span>
+          <Button asChild variant="ghost" size="sm" className="h-10 px-2">
             <a href="#top" onClick={(event) => {
               event.preventDefault();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
             }}>
-              <span className="inline-flex items-center gap-1">
-                Back to top <ArrowUp className="h-3.5 w-3.5" />
-              </span>
+              <span className="inline-flex items-center gap-1">Back to top <ArrowUp className="h-3.5 w-3.5" /></span>
             </a>
           </Button>
         </div>

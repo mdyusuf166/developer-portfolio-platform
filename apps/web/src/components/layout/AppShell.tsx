@@ -6,10 +6,10 @@ import { Navbar } from './Navbar';
 
 export function AppShell() {
   return (
-    <div className="relative min-h-screen bg-background text-foreground transition-colors duration-300">
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.12),_transparent_40%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.08),_transparent_30%)]" />
+    <div id="top" className="relative min-h-screen bg-background text-foreground">
+      <a href="#main-content" className="sr-only z-50 bg-primary px-4 py-3 text-primary-foreground focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to content</a>
       <Navbar />
-      <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl px-5 pb-20 pt-8 sm:px-8 md:pt-12">
         <Outlet />
       </main>
       <Footer />

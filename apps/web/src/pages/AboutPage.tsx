@@ -1,6 +1,4 @@
 import { PageMeta } from '../components/common/PageMeta';
-import { Badge } from '../components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { usePublicPortfolio } from '../hooks/usePublicPortfolio';
 
 export function AboutPage() {
@@ -9,46 +7,26 @@ export function AboutPage() {
     <>
       <PageMeta title="About" description="Meet MD Mahtab Ahmed Mahin, an AI / ML Engineer focused on intelligent systems and responsible engineering." />
 
-      <section className="space-y-8 py-8 md:py-12">
-        <div className="space-y-4">
-          <p className="eyebrow">About</p>
-          <h1 className="section-title">An engineering focus on intelligent systems.</h1>
+      <section className="py-8 md:py-12">
+        <header className="max-w-4xl border-b border-border pb-9 md:pb-12">
+          <p className="eyebrow">About / 02</p>
+          <h1 className="section-title mt-4">An engineering focus on intelligent systems.</h1>
+          <p className="section-copy mt-6">{profile.bio}</p>
+        </header>
+        <div className="grid gap-12 py-9 md:grid-cols-[minmax(0,1fr)_minmax(16rem,0.55fr)] md:gap-20 md:py-12">
+          <div className="space-y-6">
+            <h2 className="font-display text-3xl font-medium">The way I think about the work</h2>
+            <p className="max-w-2xl text-base leading-8 text-muted-foreground">{profile.about}</p>
+            <p className="max-w-2xl text-base leading-8 text-muted-foreground">This site documents project and research work when verified material is ready to share. It does not imply employment or production deployment experience that has not been supplied.</p>
+          </div>
+          <aside className="h-fit border-t border-primary pt-5">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Current areas of curiosity</h2>
+            <ul className="mt-4 divide-y divide-border border-y border-border">{profile.aboutHighlights.map((item, index) => <li key={item} className="flex gap-4 py-3"><span className="font-mono text-xs text-accent">0{index + 1}</span><span className="text-sm text-foreground">{item}</span></li>)}</ul>
+          </aside>
         </div>
-
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <Card>
-            <CardHeader>
-              <CardTitle>Identity</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm text-muted-foreground">
-              <p>I&apos;m {profile.name}, an {profile.title}. I&apos;m interested in building intelligent systems and machine learning applications with a sound software engineering foundation.</p>
-              <p>This site will document project and research work when verified material is ready to share; it does not represent employment or production deployment experience.</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>AI / ML interests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {profile.aboutHighlights.map((item) => (
-                  <Badge key={item}>{item}</Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid gap-6 border-t border-border pt-8 sm:grid-cols-3">
+          {profile.stats.map((stat) => <div key={stat.label} className="border-l border-border pl-4"><p className="eyebrow">{stat.label}</p><p className="mt-2 text-sm leading-6 text-foreground">{stat.value}</p></div>)}
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Software engineering foundation</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>My engineering interests include clear interfaces, maintainable architecture, and careful testing for intelligent applications.</p>
-            <p>I am also interested in cybersecurity and AI security, alongside research in applied machine learning and generative AI.</p>
-          </CardContent>
-        </Card>
       </section>
     </>
   );

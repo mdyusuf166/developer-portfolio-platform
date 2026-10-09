@@ -3,9 +3,6 @@ import { Link } from 'react-router-dom';
 
 import { PageMeta } from '../components/common/PageMeta';
 import { EmptyState } from '../components/common/EmptyState';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { usePublicPortfolio } from '../hooks/usePublicPortfolio';
 
 export function BlogPage() {
@@ -14,43 +11,19 @@ export function BlogPage() {
     <>
       <PageMeta title="Blog" description="Technical writing by MD Mahtab Ahmed Mahin. No articles are currently published." />
 
-      <section className="space-y-8 py-8 md:py-12">
-        <div className="space-y-4">
-          <p className="eyebrow">Blog</p>
-          <h1 className="section-title">Technical writing</h1>
-        </div>
+      <section className="py-8 md:py-12">
+        <header className="max-w-4xl border-b border-border pb-9 md:pb-12"><p className="eyebrow">Notes / 08</p><h1 className="section-title mt-4">Technical writing</h1><p className="section-copy mt-5">Ideas, experiments, and working notes will live here when they are ready to publish.</p></header>
 
         {isLoading ? <p role="status" className="text-sm text-muted-foreground">Loading articles...</p> : profile.blogPosts.length === 0 ? (
           <EmptyState title={error ? 'Articles unavailable' : 'No articles published'} description={error || 'Technical writing will be added when articles are ready to share.'} />
         ) : (
-          <div className="grid gap-6 lg:grid-cols-3">
-            {profile.blogPosts.map((post) => (
-              <Card key={post.slug} className="h-full overflow-hidden">
-              {post.coverImage ? <img className="aspect-[16/9] w-full object-cover" src={post.coverImage} alt="" loading="lazy" /> : null}
-              <div className="flex items-center justify-between gap-3 border-b border-border bg-muted px-5 py-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                <span>{post.category}</span>
-                {post.date ? <span>{post.date}</span> : null}
-              </div>
-              <CardHeader>
-                <CardTitle className="text-xl">{post.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{post.excerpt}</p>
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag) => (
-                    <Badge key={tag}>{tag}</Badge>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{post.readingTime ?? post.readTime ?? '5 min read'}</span>
-                  <Button asChild variant="ghost" size="sm" className="px-0 text-primary">
-                    <Link to={`/blog/${post.slug}`}>
-                      Read article <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-              </Card>
+          <div className="divide-y divide-border border-b border-border">
+            {profile.blogPosts.map((post, index) => (
+              <article key={post.slug} className="grid gap-5 py-7 md:grid-cols-[3rem_minmax(0,1fr)_minmax(12rem,0.5fr)] md:gap-8 md:py-9">
+                <span className="font-mono text-sm text-accent">{String(index + 1).padStart(2, '0')}</span>
+                <div><p className="eyebrow">{post.category}{post.date ? ` · ${post.date}` : ''}</p><h2 className="mt-2 font-display text-2xl font-medium"><Link to={`/blog/${post.slug}`} className="hover:text-primary">{post.title}</Link></h2><p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">{post.excerpt}</p><div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">{post.tags.map((tag) => <span key={tag} className="text-xs text-muted-foreground">{tag}</span>)}</div><Link to={`/blog/${post.slug}`} className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm text-link">Read article <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link></div>
+                {post.coverImage ? <img className="aspect-[4/3] w-full border border-border object-cover" src={post.coverImage} alt="" loading="lazy" /> : <p className="text-xs text-muted-foreground">{post.readingTime ?? post.readTime ?? ''}</p>}
+              </article>
             ))}
           </div>
         )}

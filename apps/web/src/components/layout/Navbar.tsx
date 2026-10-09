@@ -1,9 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
-import { Button } from '../ui/button';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { usePublicPortfolio } from '../../hooks/usePublicPortfolio';
 
@@ -12,85 +11,47 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setOpen(false);
-      }
-    };
-
+    const handleKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/80 bg-background/75 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <Link to="/" aria-label={profile.name} className="flex shrink-0 items-center gap-2 text-sm font-semibold text-foreground uppercase sm:gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-base shadow-sm">
-            {profile.name.charAt(0)}
+    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-4 sm:px-8">
+        <Link to="/" aria-label={`${profile.name}, home`} className="group flex min-w-0 items-center gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center border border-primary text-sm font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground" aria-hidden="true">M.</span>
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold tracking-tight text-foreground">{profile.name}</span>
+            <span className="block text-xs text-muted-foreground">{profile.shortTitle}</span>
           </span>
-          {profile.shortTitle}
         </Link>
 
-        <nav className="hidden min-w-0 flex-1 items-center gap-4 px-4 xl:flex xl:justify-center" aria-label="Main navigation">
+        <nav className="hidden min-w-0 flex-1 items-center justify-end gap-5 lg:flex xl:gap-6" aria-label="Main navigation">
           {profile.navigation.map((item) => (
-            <NavLink
-              key={item.href}
-              to={item.href}
-              className={({ isActive }) =>
-                `whitespace-nowrap text-sm transition-colors duration-200 ${
-                  isActive
-                    ? 'font-medium text-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`
-              }
-            >
+            <NavLink key={item.href} to={item.href} end={item.href === '/'} className={({ isActive }) => `whitespace-nowrap text-[0.82rem] transition-colors hover:text-primary ${isActive ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
               {item.label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1">
           <ThemeToggle />
-          <Button asChild variant="outline" size="sm" className="hidden xl:inline-flex">
-            <Link to="/contact">Contact Me</Link>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="xl:hidden"
-            aria-label={open ? 'Close menu' : 'Open menu'}
-            aria-expanded={open}
-            aria-controls="mobile-menu"
-            onClick={() => setOpen((current) => !current)}
-          >
-            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </Button>
+          <Link to="/contact" className="hidden items-center gap-1.5 border-b border-primary px-1 py-2 text-sm font-semibold text-primary transition-colors hover:border-accent hover:text-accent xl:inline-flex">
+            Let&apos;s talk <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+          <button type="button" className="grid h-11 w-11 place-items-center text-foreground lg:hidden" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((current) => !current)}>
+            {open ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
+          </button>
         </div>
       </div>
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {open ? (
-          <motion.div
-            id="mobile-menu"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="overflow-hidden border-t border-border bg-background/95 xl:hidden"
-          >
-            <nav aria-label="Mobile navigation" className="mx-auto flex max-w-7xl flex-col px-4 py-4">
+          <motion.div id="mobile-menu" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden border-t border-border bg-background lg:hidden">
+            <nav aria-label="Mobile navigation" className="mx-auto grid max-w-7xl grid-cols-2 px-5 py-4 sm:px-8">
               {profile.navigation.map((item) => (
-                <NavLink
-                  key={item.href}
-                  to={item.href}
-                  onClick={() => setOpen(false)}
-                  className={({ isActive }) =>
-                    `border-b border-border/80 px-1 py-3 text-sm transition-colors ${
-                      isActive ? 'text-foreground' : 'text-muted-foreground'
-                    }`
-                  }
-                >
+                <NavLink key={item.href} to={item.href} end={item.href === '/'} onClick={() => setOpen(false)} className={({ isActive }) => `border-b border-border px-2 py-3 text-sm ${isActive ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
                   {item.label}
                 </NavLink>
               ))}

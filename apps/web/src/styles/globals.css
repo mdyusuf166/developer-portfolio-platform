@@ -1,23 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   color-scheme: light;
-  --background: 250 250 249;
-  --foreground: 17 24 39;
-  --muted: 241 245 249;
-  --muted-foreground: 71 85 105;
-  --primary: 14 116 144;
-  --secondary: 148 163 184;
-  --border: 226 232 240;
-  --card: 255 255 255;
-  --accent: 14 165 233;
-  --success: 34 197 94;
-  --warning: 245 158 11;
-  --destructive: 239 68 68;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  line-height: 1.5;
+  --background: 246 243 236;
+  --foreground: 34 38 32;
+  --muted: 229 233 223;
+  --muted-foreground: 83 91 79;
+  --primary: 49 88 70;
+  --primary-foreground: 250 249 245;
+  --secondary: 220 215 206;
+  --border: 220 215 206;
+  --card: 251 249 244;
+  --accent: 193 110 75;
+  --success: 49 88 70;
+  --warning: 151 91 42;
+  --destructive: 155 55 49;
+  font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.6;
   font-weight: 400;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -27,76 +30,42 @@
 
 html.dark {
   color-scheme: dark;
-  --background: 2 6 23;
-  --foreground: 248 250 252;
-  --muted: 15 23 42;
-  --muted-foreground: 148 163 184;
-  --primary: 125 211 252;
-  --secondary: 51 65 85;
-  --border: 30 41 59;
-  --card: 15 23 42;
-  --accent: 56 189 248;
-  --success: 74 222 128;
-  --warning: 251 191 36;
-  --destructive: 248 113 113;
+  --background: 28 34 29;
+  --foreground: 241 239 229;
+  --muted: 42 51 43;
+  --muted-foreground: 188 195 181;
+  --primary: 166 194 164;
+  --primary-foreground: 27 39 31;
+  --secondary: 63 72 62;
+  --border: 68 76 65;
+  --card: 35 42 36;
+  --accent: 220 145 111;
+  --success: 166 194 164;
+  --warning: 232 183 113;
+  --destructive: 236 143 132;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background-color: rgb(var(--background));
-  color: rgb(var(--foreground));
-}
-
-* {
-  box-sizing: border-box;
-}
-
-#root {
-  min-height: 100vh;
-}
-
-img {
-  max-width: 100%;
-  display: block;
-}
-
-p {
-  margin: 0;
-}
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: rgb(var(--background)); color: rgb(var(--foreground)); }
+* { box-sizing: border-box; }
+#root { min-height: 100vh; }
+img { display: block; max-width: 100%; }
+p { margin: 0; }
+a { color: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid rgb(var(--accent)); outline-offset: 3px; }
 
 @layer components {
-  .section-shell {
-    @apply rounded-3xl border border-border bg-card/80 shadow-soft backdrop-blur-sm;
-  }
-
-  .eyebrow {
-    @apply text-[0.7rem] font-medium uppercase tracking-[0.22em] text-primary;
-  }
-
-  .section-title {
-    @apply text-3xl font-semibold tracking-tight text-foreground md:text-5xl;
-  }
-
-  .section-copy {
-    @apply max-w-2xl text-base text-muted-foreground md:text-lg;
-  }
+  .section-shell { @apply border border-border bg-card shadow-sm; }
+  .eyebrow { @apply text-xs font-semibold uppercase tracking-[0.16em] text-primary; }
+  .section-title { @apply font-display text-4xl font-medium leading-[1.08] tracking-[-0.035em] text-foreground sm:text-5xl md:text-6xl; }
+  .section-copy { @apply max-w-2xl text-base leading-7 text-muted-foreground md:text-lg md:leading-8; }
+  .editorial-rule { @apply border-t border-border; }
+  .text-link { @apply font-medium text-primary underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 
-::selection {
-  background: rgba(59, 130, 246, 0.18);
-}
+::selection { background: rgb(var(--primary) / 0.18); }
