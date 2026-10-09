@@ -29,4 +29,8 @@ describe('production environment validation', () => {
   it('keeps safe local defaults outside production', () => {
     expect(loadEnvironment({ NODE_ENV: 'development' }).databaseUrl).toContain('localhost');
   });
+
+  it('rejects misspelled environment modes instead of falling back to development', () => {
+    expect(() => loadEnvironment({ NODE_ENV: 'prod' })).toThrow(/NODE_ENV/);
+  });
 });

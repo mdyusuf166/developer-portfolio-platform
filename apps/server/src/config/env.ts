@@ -13,10 +13,24 @@ const placeholders = new Set([
   'changeme'
 ]);
 
+const parseDuration = (value: string, name: string, maxSeconds: number) => {
+  const match = /^(\d+)(s|m|h|d)$/.exec(value);
+  if (!match) throw new Error(`${name} must use an integer duration such as 15m or 7d`);
+  const multiplier = { s: 1, m: 60, h: 3600, d: 86400 }[match[2] as 's' | 'm' | 'h' | 'd'];
+  const seconds = Number(match[1]) * multiplier;
+  if (!Number.isSafeInteger(seconds) || seconds < 60 || seconds > maxSeconds) {
+    throw new Error(`${name} must be between 60 seconds and ${maxSeconds} seconds`);
+  }
+  return seconds;
+};
+
 export type EnvironmentSource = Record<string, string | undefined>;
 
 export function loadEnvironment(source: EnvironmentSource) {
   const nodeEnv = source.NODE_ENV ?? 'development';
+  if (!['development', 'test', 'production'].includes(nodeEnv)) {
+    throw new Error('NODE_ENV must be development, test, or production');
+  }
   const production = nodeEnv === 'production';
   const portValue = Number(source.PORT ?? 4000);
   const jwtAccessSecret = source.JWT_ACCESS_SECRET ?? (!production ? 'local-development-access-secret-change-me' : '');
@@ -26,6 +40,10 @@ export function loadEnvironment(source: EnvironmentSource) {
   const clientUrl = source.CLIENT_URL ?? (!production ? 'http://localhost:5173' : '');
   const redisUrl = source.REDIS_URL;
   const trustProxy = Number(source.TRUST_PROXY ?? 0);
+  const jwtAccessExpiresIn = source.JWT_ACCESS_EXPIRES_IN ?? '15m';
+  const jwtRefreshExpiresIn = source.JWT_REFRESH_EXPIRES_IN ?? '7d';
+  const jwtAccessExpiresInSeconds = parseDuration(jwtAccessExpiresIn, 'JWT_ACCESS_EXPIRES_IN', 900);
+  const jwtRefreshExpiresInSeconds = parseDuration(jwtRefreshExpiresIn, 'JWT_REFRESH_EXPIRES_IN', 30 * 86400);
 
   if (production) {
     const required = {
@@ -50,7 +68,8 @@ export function loadEnvironment(source: EnvironmentSource) {
       throw new Error('JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, and ADMIN_BOOTSTRAP_SECRET must be different in production');
     }
     try {
-      if (new URL(clientUrl).protocol !== 'https:') throw new Error();
+      const parsedClientUrl = new URL(clientUrl);
+      if (parsedClientUrl.protocol !== 'https:' || parsedClientUrl.origin !== clientUrl) throw new Error();
       if (new URL(redisUrl!).protocol !== 'redis:' && new URL(redisUrl!).protocol !== 'rediss:') throw new Error();
       if (!databaseUrl.startsWith('postgresql://') && !databaseUrl.startsWith('postgres://')) throw new Error();
     } catch {
@@ -72,9 +91,11 @@ export function loadEnvironment(source: EnvironmentSource) {
     appName: 'portfolio-api',
     version: '1.0.0',
     jwtAccessSecret,
-    jwtAccessExpiresIn: source.JWT_ACCESS_EXPIRES_IN ?? '15m',
+    jwtAccessExpiresIn,
+    jwtAccessExpiresInSeconds,
     jwtRefreshSecret,
-    jwtRefreshExpiresIn: source.JWT_REFRESH_EXPIRES_IN ?? '7d',
+    jwtRefreshExpiresIn,
+    jwtRefreshExpiresInSeconds,
     adminBootstrapSecret
   };
 }

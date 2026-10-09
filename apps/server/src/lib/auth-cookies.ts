@@ -16,7 +16,7 @@ const cookieOptions = (httpOnly: boolean) => ({
   secure: env.nodeEnv === 'production',
   sameSite: env.nodeEnv === 'production' ? 'none' as const : 'lax' as const,
   path: cookiePath,
-  maxAge: 7 * 24 * 60 * 60 * 1000
+  maxAge: env.jwtRefreshExpiresInSeconds * 1000
 });
 
 export const readRefreshCookie = (req: Request) => cookieValue(req.headers.cookie, REFRESH_COOKIE);

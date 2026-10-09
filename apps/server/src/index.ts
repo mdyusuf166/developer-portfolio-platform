@@ -17,7 +17,7 @@ const serverPromise = connectRateLimitStore().then(() => new Promise<ReturnType<
 }));
 void serverPromise.catch((error: unknown) => {
   logger.error('Server startup failed', { errorName: error instanceof Error ? error.name : 'UnknownError' });
-  process.exitCode = 1;
+  process.exit(1);
 });
 
 const gracefulShutdown = (signal: string) => {

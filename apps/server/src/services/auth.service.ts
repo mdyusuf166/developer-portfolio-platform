@@ -34,7 +34,7 @@ export const authService = {
       data: {
         tokenHash: hashRefreshToken(refreshToken),
         adminId: admin.id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        expiresAt: new Date(Date.now() + env.jwtRefreshExpiresInSeconds * 1000)
       }
     });
 
@@ -66,7 +66,7 @@ export const authService = {
       data: {
         tokenHash: hashRefreshToken(refreshToken),
         adminId: admin.id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        expiresAt: new Date(Date.now() + env.jwtRefreshExpiresInSeconds * 1000)
       }
     });
 
@@ -108,7 +108,7 @@ export const authService = {
         data: {
           tokenHash: hashRefreshToken(nextRefreshToken),
           adminId: refreshRecord.adminId,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+          expiresAt: new Date(Date.now() + env.jwtRefreshExpiresInSeconds * 1000)
         }
       });
     });

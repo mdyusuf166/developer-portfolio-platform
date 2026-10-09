@@ -18,7 +18,7 @@ try {
   process.exit(2);
 }
 const databaseName = decodeURIComponent(testDatabase.pathname.slice(1));
-if (!['localhost', '127.0.0.1', '::1'].includes(testDatabase.hostname) || !databaseName.startsWith('portfolio_test_')) {
+if (!['postgres:', 'postgresql:'].includes(testDatabase.protocol) || !['localhost', '127.0.0.1', '::1', '[::1]'].includes(testDatabase.hostname) || !databaseName.startsWith('portfolio_test_')) {
   console.error('Server tests are restricted to a loopback database named portfolio_test_*.');
   process.exit(2);
 }
@@ -49,8 +49,10 @@ try {
   const resolvedTempRoot = resolve(tmpdir());
   const resolvedUploadDirectory = resolve(uploadDirectory);
   if (!resolvedUploadDirectory.startsWith(`${resolvedTempRoot}/`) && !resolvedUploadDirectory.startsWith(`${resolvedTempRoot}\\`)) {
-    throw new Error('Refusing to remove an upload test directory outside the OS temp directory.');
+    console.error('Refusing to remove an upload test directory outside the OS temp directory.');
+    exitCode = 1;
+  } else {
+    await rm(resolvedUploadDirectory, { recursive: true, force: true });
   }
-  await rm(resolvedUploadDirectory, { recursive: true, force: true });
 }
 process.exitCode = exitCode;

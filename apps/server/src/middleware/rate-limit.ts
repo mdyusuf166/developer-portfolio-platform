@@ -17,21 +17,16 @@ export async function closeRateLimitStore() {
 }
 
 type RateLimitOptions = { bucket: string; windowSeconds: number; points: number };
-const limiters = new Map<string, RateLimiterMemory | RateLimiterRedis>();
 
-const getLimiter = ({ bucket, windowSeconds, points }: RateLimitOptions) => {
-  const existing = limiters.get(bucket);
-  if (existing) return existing;
+const createLimiter = ({ bucket, windowSeconds, points }: RateLimitOptions) => {
   const config = { points, duration: windowSeconds, blockDuration: windowSeconds, keyPrefix: `portfolio:${bucket}` };
-  const limiter = env.nodeEnv === 'production' && redisClient
+  return env.nodeEnv === 'production' && redisClient
     ? new RateLimiterRedis({ ...config, storeClient: redisClient })
     : new RateLimiterMemory(config);
-  limiters.set(bucket, limiter);
-  return limiter;
 };
 
 export const rateLimit = (options: RateLimitOptions) => {
-  const limiter = getLimiter(options);
+  const limiter = createLimiter(options);
   return (req: Request, res: Response, next: NextFunction) => {
     const key = req.ip ?? req.socket.remoteAddress ?? 'unknown';
     void limiter.consume(key).then(() => next()).catch((error: unknown) => {

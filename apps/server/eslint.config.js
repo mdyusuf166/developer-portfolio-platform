@@ -15,9 +15,6 @@ export default [
         ...globals.node,
         ...globals.es2021
       }
-    },
-    rules: {
-      'no-unsafe-finally': 'off'
     }
   },
   {

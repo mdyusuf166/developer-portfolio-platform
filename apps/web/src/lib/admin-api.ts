@@ -74,6 +74,23 @@ async function acquireCsrfToken() {
   return result.csrfToken;
 }
 
+let refreshInFlight: Promise<{ accessToken: string; csrfToken: string; admin: AdminSession['admin'] }> | undefined;
+
+function refreshSession() {
+  if (refreshInFlight) return refreshInFlight;
+  refreshInFlight = (async () => {
+    if (!getAdminSession()) throw new AdminApiError('Session expired. Please sign in again.', 401, 'SESSION_EXPIRED');
+    const csrfToken = await acquireCsrfToken();
+    const payload = await rawRequest<{ accessToken: string; csrfToken: string; admin: AdminSession['admin'] }>('/api/v1/auth/refresh', {
+      method: 'POST', headers: { 'X-CSRF-Token': csrfToken }, body: '{}'
+    }, false);
+    window.sessionStorage.setItem(CSRF_KEY, payload.csrfToken);
+    setAdminSession({ accessToken: payload.accessToken, admin: payload.admin });
+    return payload;
+  })().finally(() => { refreshInFlight = undefined; });
+  return refreshInFlight;
+}
+
 export const adminAuthApi = {
   async login(email: string, password: string) {
     const payload = await rawRequest<{ accessToken: string; csrfToken: string; admin: AdminSession['admin'] }>('/api/v1/auth/login', {
@@ -83,16 +100,7 @@ export const adminAuthApi = {
     setAdminSession({ accessToken: payload.accessToken, admin: payload.admin });
     return payload;
   },
-  async refresh() {
-    if (!getAdminSession()) throw new AdminApiError('Session expired. Please sign in again.', 401, 'SESSION_EXPIRED');
-    const csrfToken = await acquireCsrfToken();
-    const payload = await rawRequest<{ accessToken: string; csrfToken: string; admin: AdminSession['admin'] }>('/api/v1/auth/refresh', {
-      method: 'POST', headers: { 'X-CSRF-Token': csrfToken }, body: '{}'
-    }, false);
-    window.sessionStorage.setItem(CSRF_KEY, payload.csrfToken);
-    setAdminSession({ accessToken: payload.accessToken, admin: payload.admin });
-    return payload;
-  },
+  refresh: refreshSession,
   async restore() {
     const session = getAdminSession();
     if (!session) return null;

@@ -1,10 +1,10 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { adminAuthApi } from '../../lib/admin-api';
-import { getAccessToken, getAdminSession } from '../../lib/admin-session';
+import { clearAdminSession, getAccessToken, getAdminSession } from '../../lib/admin-session';
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
@@ -13,6 +13,17 @@ export function AdminLoginPage() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const shouldRestore = Boolean(session && !getAccessToken());
+
+  useEffect(() => {
+    if (!shouldRestore) return;
+    setRestoring(true);
+    void adminAuthApi.restore()
+      .then((admin) => { if (admin) navigate('/admin/dashboard', { replace: true }); })
+      .catch(() => clearAdminSession())
+      .finally(() => setRestoring(false));
+  }, [navigate, shouldRestore]);
 
   if (session && getAccessToken()) {
     return <Navigate to="/admin/dashboard" replace />;
@@ -48,6 +59,7 @@ export function AdminLoginPage() {
           <h1 className="mt-4 text-3xl font-semibold text-white">Admin access</h1>
         </div>
 
+        {restoring ? <p role="status" className="mb-5 text-center text-sm text-slate-300">Restoring secure admin session...</p> : null}
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium text-slate-200">
@@ -85,7 +97,7 @@ export function AdminLoginPage() {
             <p className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
           ) : null}
 
-          <Button type="submit" className="w-full" disabled={submitting}>
+          <Button type="submit" className="w-full" disabled={submitting || restoring}>
             {submitting ? 'Signing in...' : 'Sign in'}
           </Button>
         </form>
