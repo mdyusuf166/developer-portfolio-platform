@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 import { getPublishedProjectBySlug } from '../lib/public-projects';
 import type { Project } from '../types';
+import { PreviewDataContext } from '../preview/preview-context';
 
 export function usePublicProject(slug: string | undefined) {
+  const preview = useContext(PreviewDataContext);
   const [project, setProject] = useState<Project>();
   const [isLoading, setIsLoading] = useState(Boolean(slug));
   const [error, setError] = useState('');
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    if (preview) return;
     if (!slug) {
       setIsLoading(false);
       setNotFound(true);
@@ -29,7 +32,13 @@ export function usePublicProject(slug: string | undefined) {
       .finally(() => { if (!controller.signal.aborted) setIsLoading(false); });
 
     return () => controller.abort();
-  }, [slug]);
+  }, [preview, slug]);
 
-  return { project, isLoading, error, notFound };
+  const previewProject = preview?.projects.find((candidate) => candidate.slug === slug);
+  return {
+    project: preview ? previewProject : project,
+    isLoading: preview ? false : isLoading,
+    error: preview ? '' : error,
+    notFound: preview ? !previewProject : notFound
+  };
 }

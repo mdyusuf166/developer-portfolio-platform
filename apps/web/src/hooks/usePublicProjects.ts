@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 import { getPublishedProjects } from '../lib/public-projects';
 import type { Project } from '../types';
+import { PreviewDataContext } from '../preview/preview-context';
 
 export function usePublicProjects() {
+  const preview = useContext(PreviewDataContext);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (preview) return;
     const controller = new AbortController();
 
     getPublishedProjects(controller.signal)
@@ -27,7 +30,7 @@ export function usePublicProjects() {
       });
 
     return () => controller.abort();
-  }, []);
+  }, [preview]);
 
-  return { projects, isLoading, error };
+  return { projects: preview ? preview.projects : projects, isLoading: preview ? false : isLoading, error: preview ? '' : error };
 }

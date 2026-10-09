@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 import { profile as localProfile } from '../data/profile';
 import { publicApiBaseUrl } from '../lib/public-projects';
 import { resolveProjectImageUrl } from '../lib/public-projects';
 import type { Achievement, BlogPost, Education, Experience, Profile, ResearchItem, Service, SkillGroup } from '../types';
+import { PreviewDataContext } from '../preview/preview-context';
 
 type Snapshot = {
   name?: string;
@@ -99,10 +100,12 @@ export function mapPublicSnapshot(snapshot: Snapshot): Profile {
 }
 
 export function usePublicPortfolio() {
+  const preview = useContext(PreviewDataContext);
   const [portfolio, setPortfolio] = useState(localProfile);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   useEffect(() => {
+    if (preview) return;
     const controller = new AbortController();
     fetch(`${publicApiBaseUrl}/api/v1/profile`, { signal: controller.signal })
       .then(async (response) => {
@@ -115,7 +118,7 @@ export function usePublicPortfolio() {
       })
       .finally(() => { if (!controller.signal.aborted) setIsLoading(false); });
     return () => controller.abort();
-  }, []);
+  }, [preview]);
 
-  return { profile: portfolio, isLoading, error };
+  return { profile: preview ? preview.profile : portfolio, isLoading: preview ? false : isLoading, error: preview ? '' : error };
 }
