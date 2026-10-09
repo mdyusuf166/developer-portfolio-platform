@@ -22,6 +22,7 @@ export const projectCreateSchema = z.object({
   githubUrl: optionalUrl,
   demoUrl: optionalUrl,
   imageUrl: z.string().trim().max(500).optional().nullable(),
+  imageAssetId: z.string().trim().min(1).max(64).optional().nullable(),
   featured: z.boolean().optional().default(false),
   status: z.enum(['draft', 'published', 'archived']).optional().default('draft'),
   category: z.string().trim().max(120).optional().default('Other')
@@ -78,7 +79,9 @@ export const researchCreateSchema = z.object({
   githubUrl: optionalUrl,
   notes: z.string().trim().max(10000).optional().nullable(),
   imageUrl: optionalAssetUrl,
+  imageAssetId: z.string().trim().min(1).max(64).optional().nullable(),
   fileUrl: optionalAssetUrl,
+  fileAssetId: z.string().trim().min(1).max(64).optional().nullable(),
   status: z.enum(['draft', 'published', 'archived']).optional().default('draft')
 });
 
@@ -91,7 +94,9 @@ export const achievementCreateSchema = z.object({
   awardDate: nullableDate,
   credentialUrl: optionalUrl,
   imageUrl: optionalAssetUrl,
+  imageAssetId: z.string().trim().min(1).max(64).optional().nullable(),
   documentUrl: optionalAssetUrl,
+  documentAssetId: z.string().trim().min(1).max(64).optional().nullable(),
   status: z.enum(['draft', 'published', 'archived']).optional().default('draft')
 });
 
@@ -114,6 +119,7 @@ export const blogPostCreateSchema = z.object({
   category: z.string().trim().min(1).max(120),
   tags: textList,
   coverImageUrl: optionalAssetUrl,
+  coverImageAssetId: z.string().trim().min(1).max(64).optional().nullable(),
   published: z.boolean().optional().default(false),
   publishedAt: optionalDate
 });
@@ -130,6 +136,9 @@ export const portfolioProfileSchema = z.object({
   github: optionalUrl,
   linkedin: optionalUrl,
   profileImageUrl: optionalAssetUrl,
+  profileImageAssetId: z.string().trim().min(1).max(64).optional().nullable(),
+  profileImagePublic: z.boolean().optional().default(false),
   resumeUrl: optionalAssetUrl,
+  resumeAssetId: z.string().trim().min(1).max(64).optional().nullable(),
   socials: z.array(z.object({ label: z.string().trim().min(1).max(80), href: z.string().trim().min(1).max(500) })).max(20).optional().default([])
 });

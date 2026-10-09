@@ -1,6 +1,7 @@
 import { clearAdminSession, getAccessToken, getAdminSession, setAdminSession } from './admin-session';
+import { publicApiBaseUrl } from './public-projects';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
+const API_BASE_URL = publicApiBaseUrl;
 const CSRF_KEY = 'portfolio-admin-csrf';
 
 type ApiEnvelope<T> = {
@@ -149,10 +150,32 @@ export const profileApi = {
 
 export const uploadsApi = {
   list: () => request<Record<string, unknown>[]>('/api/v1/admin/uploads', { method: 'GET' }),
-  upload(file: File, purpose: string) {
-    const body = new FormData(); body.append('file', file); body.append('purpose', purpose);
-    return request<Record<string, unknown>>('/api/v1/admin/uploads', { method: 'POST', body });
+  async upload(file: File, purpose: string, options: { signal?: AbortSignal; onProgress?: (percent: number) => void } = {}) {
+    const authorization = await request<{ uploadToken: string; url: string; method: 'PUT'; headers: Record<string, string> }>('/api/v1/admin/uploads/authorize', {
+      method: 'POST', body: JSON.stringify({ originalName: file.name, contentType: file.type, size: file.size, purpose })
+    });
+    await new Promise<void>((resolve, reject) => {
+      if (options.signal?.aborted) {
+        reject(new DOMException('Upload cancelled.', 'AbortError'));
+        return;
+      }
+      const xhr = new XMLHttpRequest();
+      xhr.open(authorization.method, authorization.url);
+      for (const [name, value] of Object.entries(authorization.headers)) xhr.setRequestHeader(name, value);
+      xhr.upload.onprogress = (event) => { if (event.lengthComputable) options.onProgress?.(Math.round((event.loaded / event.total) * 100)); };
+      xhr.onerror = () => reject(new AdminApiError('Direct upload failed.', 502, 'UPLOAD_TRANSFER_FAILED'));
+      xhr.onabort = () => reject(new DOMException('Upload cancelled.', 'AbortError'));
+      xhr.onload = () => xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new AdminApiError(
+        xhr.status === 401 || xhr.status === 403 ? 'Upload authorization expired or was rejected. Select the file and retry.' : 'Direct upload was rejected.',
+        xhr.status,
+        xhr.status === 401 || xhr.status === 403 ? 'UPLOAD_AUTHORIZATION_INVALID' : 'UPLOAD_TRANSFER_FAILED'
+      ));
+      options.signal?.addEventListener('abort', () => xhr.abort(), { once: true });
+      if (options.signal?.aborted) xhr.abort(); else xhr.send(file);
+    });
+    return request<Record<string, unknown>>('/api/v1/admin/uploads/finalize', { method: 'POST', body: JSON.stringify({ uploadToken: authorization.uploadToken }) });
   },
+  async readUrl(id: string) { return (await request<{ url: string }>(`/api/v1/admin/uploads/${encodeURIComponent(id)}/read-url`, { method: 'GET' })).url; },
   remove: (id: string) => request<unknown>(`/api/v1/admin/uploads/${encodeURIComponent(id)}`, { method: 'DELETE' })
 };
 

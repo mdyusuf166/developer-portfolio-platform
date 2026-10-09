@@ -26,6 +26,7 @@ model Admin {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
+  uploadAssets  UploadAsset[]
 
   @@map("admins")
 }
@@ -60,6 +61,8 @@ model Project {
   githubUrl          String?
   demoUrl            String?
   imageUrl           String?
+  imageAssetId       String?
+  imageAsset         UploadAsset? @relation("ProjectImage", fields: [imageAssetId], references: [id], onDelete: Restrict)
   category           String   @default("Other")
   featured           Boolean  @default(false)
   status             String   @default("draft")
@@ -80,6 +83,8 @@ model BlogPost {
   category    String
   tags        String[] @default([])
   coverImageUrl String?
+  coverImageAssetId String?
+  coverImageAsset UploadAsset? @relation("BlogPostCover", fields: [coverImageAssetId], references: [id], onDelete: Restrict)
   published   Boolean  @default(false)
   publishedAt DateTime?
   createdAt   DateTime @default(now())
@@ -149,7 +154,11 @@ model ResearchItem {
   githubUrl      String?
   notes          String?
   imageUrl       String?
+  imageAssetId   String?
+  imageAsset     UploadAsset? @relation("ResearchImage", fields: [imageAssetId], references: [id], onDelete: Restrict)
   fileUrl        String?
+  fileAssetId    String?
+  fileAsset      UploadAsset? @relation("ResearchFile", fields: [fileAssetId], references: [id], onDelete: Restrict)
   status         String   @default("draft")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -165,7 +174,11 @@ model Achievement {
   awardDate   DateTime?
   credentialUrl String?
   imageUrl    String?
+  imageAssetId String?
+  imageAsset  UploadAsset? @relation("AchievementImage", fields: [imageAssetId], references: [id], onDelete: Restrict)
   documentUrl String?
+  documentAssetId String?
+  documentAsset UploadAsset? @relation("AchievementDocument", fields: [documentAssetId], references: [id], onDelete: Restrict)
   status      String   @default("draft")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -196,7 +209,12 @@ model PortfolioProfile {
   github          String?
   linkedin        String?
   profileImageUrl String?
+  profileImageAssetId String?
+  profileImageAsset UploadAsset? @relation("ProfileImage", fields: [profileImageAssetId], references: [id], onDelete: Restrict)
+  profileImagePublic Boolean @default(false)
   resumeUrl       String?
+  resumeAssetId   String?
+  resumeAsset     UploadAsset? @relation("ProfileResume", fields: [resumeAssetId], references: [id], onDelete: Restrict)
   socials         Json     @default("[]")
   updatedAt       DateTime @updatedAt
 
@@ -211,8 +229,20 @@ model UploadAsset {
   size         Int
   url          String   @unique
   purpose      String?
+  ownerAdminId String?
+  ownerAdmin   Admin? @relation(fields: [ownerAdminId], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())
 
+  projectImages       Project[] @relation("ProjectImage")
+  blogPostCovers      BlogPost[] @relation("BlogPostCover")
+  researchImages      ResearchItem[] @relation("ResearchImage")
+  researchFiles       ResearchItem[] @relation("ResearchFile")
+  achievementImages   Achievement[] @relation("AchievementImage")
+  achievementDocuments Achievement[] @relation("AchievementDocument")
+  profileImages       PortfolioProfile[] @relation("ProfileImage")
+  profileResumes      PortfolioProfile[] @relation("ProfileResume")
+
   @@index([createdAt])
+  @@index([ownerAdminId])
   @@map("upload_assets")
 }

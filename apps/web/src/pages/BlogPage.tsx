@@ -19,10 +19,10 @@ export function BlogPage() {
         ) : (
           <div className="divide-y divide-border border-b border-border">
             {profile.blogPosts.map((post, index) => (
-              <article key={post.slug} className="grid gap-5 py-7 md:grid-cols-[3rem_minmax(0,1fr)_minmax(12rem,0.5fr)] md:gap-8 md:py-9">
+              <article key={post.slug} className="grid min-w-0 gap-5 py-7 md:grid-cols-[3rem_minmax(0,1fr)_minmax(0,0.5fr)] md:gap-8 md:py-9">
                 <span className="font-mono text-sm text-accent-foreground">{String(index + 1).padStart(2, '0')}</span>
                 <div><p className="eyebrow">{post.category}{post.date ? ` · ${post.date}` : ''}</p><h2 className="mt-2 font-display text-2xl font-medium"><Link to={`/blog/${post.slug}`} className="hover:text-primary">{post.title}</Link></h2><p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">{post.excerpt}</p><div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">{post.tags.map((tag) => <span key={tag} className="text-xs text-muted-foreground">{tag}</span>)}</div><Link to={`/blog/${post.slug}`} className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm text-link">Read article <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link></div>
-                {post.coverImage ? <img className="aspect-[4/3] w-full border border-border object-cover" src={post.coverImage} alt="" loading="lazy" /> : <p className="text-xs text-muted-foreground">{post.readingTime ?? post.readTime ?? ''}</p>}
+                {post.coverImage ? <img className="aspect-[4/3] w-full border border-border object-cover" src={post.coverImage} alt={`Cover image for ${post.title}`} loading="lazy" /> : <p className="text-xs text-muted-foreground">{post.readingTime ?? post.readTime ?? ''}</p>}
               </article>
             ))}
           </div>

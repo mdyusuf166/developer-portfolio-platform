@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 
 import { getPublishedProjectBySlug } from '../lib/public-projects';
+import { getProjectBySlug } from '../data/projects';
 import type { Project } from '../types';
 import { PreviewDataContext } from '../preview/preview-context';
 
@@ -25,6 +26,12 @@ export function usePublicProject(slug: string | undefined) {
       .then(setProject)
       .catch((caught: unknown) => {
         if (controller.signal.aborted) return;
+        const fallback = getProjectBySlug(slug);
+        if (fallback) {
+          setProject(fallback);
+          setNotFound(false);
+          return;
+        }
         const status = caught && typeof caught === 'object' && 'status' in caught ? caught.status : undefined;
         setNotFound(status === 404);
         setError(caught instanceof Error ? caught.message : 'Unable to load project.');

@@ -13,7 +13,7 @@ describe('AI/ML project showcase', () => {
     }));
   });
 
-  it('shows an honest empty state and no category filters when there are no projects', async () => {
+  it('shows the CV-listed static projects when the API has no published projects', async () => {
     render(
       <MemoryRouter>
         <ProjectsPage />
@@ -21,11 +21,10 @@ describe('AI/ML project showcase', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'AI / ML Projects' })).toBeInTheDocument();
-    expect(await screen.findByText('No published projects yet')).toBeInTheDocument();
-    expect(screen.queryByRole('group', { name: 'Filter projects by category' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'ClimateGuard AI' })).toBeInTheDocument();
   });
 
-  it('shows the homepage selected-projects empty state and projects navigation', async () => {
+  it('shows static selected projects and projects navigation when the API is empty', async () => {
     render(
       <MemoryRouter>
         <HomePage />
@@ -33,11 +32,11 @@ describe('AI/ML project showcase', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'AI / ML project showcase' })).toBeInTheDocument();
-    expect(await screen.findByText('No projects have been published yet.')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'ClimateGuard AI' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'View all projects' })).toHaveAttribute('href', '/projects');
   });
 
-  it('renders a published project with its uploaded image from the API', async () => {
+  it('renders a published project but keeps its uploaded image private', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -62,9 +61,6 @@ describe('AI/ML project showcase', () => {
     );
 
     expect(await screen.findByRole('heading', { name: 'Published project' })).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Published project project image' })).toHaveAttribute(
-      'src',
-      'http://localhost:4000/uploads/project.png'
-    );
+    expect(screen.queryByRole('img', { name: 'Published project project image' })).not.toBeInTheDocument();
   });
 });

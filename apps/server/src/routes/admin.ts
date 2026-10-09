@@ -5,6 +5,7 @@ import { adminContentController } from '../controllers/admin-content.controller.
 import { AppError } from '../errors/AppError.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { requireRole } from '../middleware/authorization.js';
+import { requireOwnedAssetReferences } from '../middleware/asset-ownership.js';
 import {
   achievementCreateSchema,
   achievementUpdateSchema,
@@ -64,8 +65,8 @@ export const registerAdminContentRoutes = (router: Router) => {
 
   router.get('/api/v1/admin/projects', ...adminOnly, validateListRequest(projectListQuerySchema), adminContentController.projects.list);
   router.get('/api/v1/admin/projects/:id', ...adminOnly, adminContentController.projects.getOne);
-  router.post('/api/v1/admin/projects', ...adminOnly, validateBody(projectCreateSchema), adminContentController.projects.create);
-  router.patch('/api/v1/admin/projects/:id', ...adminOnly, validateBody(projectUpdateSchema), adminContentController.projects.update);
+  router.post('/api/v1/admin/projects', ...adminOnly, validateBody(projectCreateSchema), requireOwnedAssetReferences, adminContentController.projects.create);
+  router.patch('/api/v1/admin/projects/:id', ...adminOnly, validateBody(projectUpdateSchema), requireOwnedAssetReferences, adminContentController.projects.update);
   router.delete('/api/v1/admin/projects/:id', ...adminOnly, adminContentController.projects.delete);
 
   router.get('/api/v1/admin/skills', ...adminOnly, validateListRequest(skillListQuerySchema), adminContentController.skills.list);
@@ -88,14 +89,14 @@ export const registerAdminContentRoutes = (router: Router) => {
 
   router.get('/api/v1/admin/research', ...adminOnly, validateListRequest(researchListQuerySchema), adminContentController.research.list);
   router.get('/api/v1/admin/research/:id', ...adminOnly, adminContentController.research.getOne);
-  router.post('/api/v1/admin/research', ...adminOnly, validateBody(researchCreateSchema), adminContentController.research.create);
-  router.patch('/api/v1/admin/research/:id', ...adminOnly, validateBody(researchUpdateSchema), adminContentController.research.update);
+  router.post('/api/v1/admin/research', ...adminOnly, validateBody(researchCreateSchema), requireOwnedAssetReferences, adminContentController.research.create);
+  router.patch('/api/v1/admin/research/:id', ...adminOnly, validateBody(researchUpdateSchema), requireOwnedAssetReferences, adminContentController.research.update);
   router.delete('/api/v1/admin/research/:id', ...adminOnly, adminContentController.research.delete);
 
   router.get('/api/v1/admin/achievements', ...adminOnly, validateListRequest(achievementListQuerySchema), adminContentController.achievements.list);
   router.get('/api/v1/admin/achievements/:id', ...adminOnly, adminContentController.achievements.getOne);
-  router.post('/api/v1/admin/achievements', ...adminOnly, validateBody(achievementCreateSchema), adminContentController.achievements.create);
-  router.patch('/api/v1/admin/achievements/:id', ...adminOnly, validateBody(achievementUpdateSchema), adminContentController.achievements.update);
+  router.post('/api/v1/admin/achievements', ...adminOnly, validateBody(achievementCreateSchema), requireOwnedAssetReferences, adminContentController.achievements.create);
+  router.patch('/api/v1/admin/achievements/:id', ...adminOnly, validateBody(achievementUpdateSchema), requireOwnedAssetReferences, adminContentController.achievements.update);
   router.delete('/api/v1/admin/achievements/:id', ...adminOnly, adminContentController.achievements.delete);
 
   router.get('/api/v1/admin/services', ...adminOnly, validateListRequest(serviceListQuerySchema), adminContentController.services.list);
@@ -106,7 +107,7 @@ export const registerAdminContentRoutes = (router: Router) => {
 
   router.get('/api/v1/admin/blog-posts', ...adminOnly, validateListRequest(blogListQuerySchema), adminContentController.blogPosts.list);
   router.get('/api/v1/admin/blog-posts/:id', ...adminOnly, adminContentController.blogPosts.getOne);
-  router.post('/api/v1/admin/blog-posts', ...adminOnly, validateBody(blogPostCreateSchema), adminContentController.blogPosts.create);
-  router.patch('/api/v1/admin/blog-posts/:id', ...adminOnly, validateBody(blogPostUpdateSchema), adminContentController.blogPosts.update);
+  router.post('/api/v1/admin/blog-posts', ...adminOnly, validateBody(blogPostCreateSchema), requireOwnedAssetReferences, adminContentController.blogPosts.create);
+  router.patch('/api/v1/admin/blog-posts/:id', ...adminOnly, validateBody(blogPostUpdateSchema), requireOwnedAssetReferences, adminContentController.blogPosts.update);
   router.delete('/api/v1/admin/blog-posts/:id', ...adminOnly, adminContentController.blogPosts.delete);
 };

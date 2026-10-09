@@ -56,7 +56,7 @@ describe('synthetic populated preview content', () => {
 
   it('keeps the normal no-provider API path active', async () => {
     render(<MemoryRouter><NormalProjectsPage /></MemoryRouter>);
-    await screen.findByText('No published projects yet');
-    expect(fetch).toHaveBeenCalledWith('http://localhost:4000/api/v1/projects', expect.any(Object));
+    await screen.findByRole('heading', { name: 'ClimateGuard AI' });
+    expect(fetch).toHaveBeenCalledWith('/api/v1/projects', expect.any(Object));
   });
 });

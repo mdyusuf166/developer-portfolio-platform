@@ -38,8 +38,8 @@ export function BlogPostPage() {
             </div>
           ) : null}
         </header>
-        {post.coverImage ? <img className="mt-8 aspect-[16/8] w-full border border-border object-cover" src={post.coverImage} alt="" /> : null}
-        <div className="mx-auto max-w-3xl py-8 md:py-12"><ul className="mb-8 flex flex-wrap gap-x-4 gap-y-2">{post.tags.map((tag) => <li key={tag} className="text-xs text-muted-foreground">{tag}</li>)}</ul><div className="whitespace-pre-wrap text-base leading-8 text-foreground md:text-lg md:leading-9">{post.content}</div></div>
+        {post.coverImage ? <img className="mt-8 aspect-[16/8] w-full border border-border object-cover" src={post.coverImage} alt={`Cover image for ${post.title}`} /> : null}
+        <div className="mx-auto min-w-0 max-w-3xl py-8 md:py-12"><ul className="mb-8 flex flex-wrap gap-x-4 gap-y-2">{post.tags.map((tag) => <li key={tag} className="text-xs text-muted-foreground">{tag}</li>)}</ul><div className="whitespace-pre-wrap break-words text-base leading-8 text-foreground md:text-lg md:leading-9">{post.content}</div></div>
       </article>
     </>
   );

@@ -1,8 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 
 import { profile as localProfile } from '../data/profile';
-import { publicApiBaseUrl } from '../lib/public-projects';
-import { resolveProjectImageUrl } from '../lib/public-projects';
+import { isPrivateUploadUrl, publicApiBaseUrl, resolveProjectImageUrl } from '../lib/public-projects';
 import type { Achievement, BlogPost, Education, Experience, Profile, ResearchItem, Service, SkillGroup } from '../types';
 import { PreviewDataContext } from '../preview/preview-context';
 
@@ -30,6 +29,18 @@ type Snapshot = {
 
 const list = (value: unknown) => Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 const text = (value: unknown, fallback = '') => typeof value === 'string' ? value : fallback;
+const publicFileUrl = (value: unknown) => {
+  const candidate = text(value).trim();
+  if (!candidate) return undefined;
+  if (isPrivateUploadUrl(candidate)) return undefined;
+  try {
+    const resolved = new URL(candidate, publicApiBaseUrl || window.location.origin);
+    if (!['http:', 'https:'].includes(resolved.protocol) || resolved.username || resolved.password) return undefined;
+    return resolveProjectImageUrl(resolved.toString());
+  } catch {
+    return undefined;
+  }
+};
 
 export function mapPublicSnapshot(snapshot: Snapshot): Profile {
   const skills = snapshot.skills ?? [];
@@ -38,7 +49,7 @@ export function mapPublicSnapshot(snapshot: Snapshot): Profile {
   const projects = snapshot.projects ?? [];
   const blogPosts: BlogPost[] = (snapshot.blogPosts ?? []).map((item) => ({
     id: text(item.id), slug: text(item.slug), title: text(item.title), excerpt: text(item.excerpt), content: text(item.content),
-    category: text(item.category), tags: list(item.tags), coverImage: text(item.coverImageUrl) ? resolveProjectImageUrl(text(item.coverImageUrl)) : undefined,
+    category: text(item.category), tags: list(item.tags), coverImage: publicFileUrl(item.coverImageUrl),
     published: item.published === true, publishedAt: text(item.publishedAt) || undefined
   }));
   const experience: Experience[] = (snapshot.experience ?? []).map((item) => ({
@@ -54,18 +65,18 @@ export function mapPublicSnapshot(snapshot: Snapshot): Profile {
   const research: ResearchItem[] = (snapshot.research ?? []).map((item) => ({
     id: text(item.id), title: text(item.title), topic: text(item.area) || undefined, summary: text(item.summary), methodology: text(item.methodology) || undefined,
     publicationDate: text(item.publicationDate) || undefined,
-    status: text(item.status), topics: [], tags: [], technologies: list(item.technologies), link: text(item.publicationUrl) || text(item.paperUrl) || undefined,
-    publicationUrl: text(item.publicationUrl) || undefined,
-    pdfUrl: text(item.paperUrl) || text(item.fileUrl) ? resolveProjectImageUrl(text(item.paperUrl) || text(item.fileUrl)) : undefined,
-    fileUrl: text(item.fileUrl) ? resolveProjectImageUrl(text(item.fileUrl)) : undefined,
-    imageUrl: text(item.imageUrl) ? resolveProjectImageUrl(text(item.imageUrl)) : undefined,
+    status: text(item.status), topics: [], tags: [], technologies: list(item.technologies), link: publicFileUrl(item.publicationUrl) ?? publicFileUrl(item.paperUrl),
+    publicationUrl: publicFileUrl(item.publicationUrl),
+    pdfUrl: publicFileUrl(item.paperUrl) ?? publicFileUrl(item.fileUrl),
+    fileUrl: publicFileUrl(item.fileUrl),
+    imageUrl: publicFileUrl(item.imageUrl),
     githubUrl: text(item.githubUrl) || undefined
   }));
   const achievements: Achievement[] = (snapshot.achievements ?? []).map((item) => ({
     id: text(item.id), title: text(item.title), issuer: text(item.issuer) || undefined, date: text(item.awardDate) || undefined,
-    description: text(item.description), url: text(item.credentialUrl) || undefined,
-    imageUrl: text(item.imageUrl) ? resolveProjectImageUrl(text(item.imageUrl)) : undefined,
-    documentUrl: text(item.documentUrl) ? resolveProjectImageUrl(text(item.documentUrl)) : undefined,
+    description: text(item.description), url: publicFileUrl(item.credentialUrl),
+    imageUrl: publicFileUrl(item.imageUrl),
+    documentUrl: publicFileUrl(item.documentUrl),
     detail: undefined
   }));
   const services: Service[] = (snapshot.services ?? []).map((item) => ({
@@ -74,25 +85,26 @@ export function mapPublicSnapshot(snapshot: Snapshot): Profile {
 
   return {
     ...localProfile,
-    name: text(snapshot.name, localProfile.name),
-    title: text(snapshot.title, localProfile.title),
-    shortTitle: text(snapshot.title, localProfile.title),
-    headline: text(snapshot.headline, localProfile.headline),
-    hero: text(snapshot.headline, localProfile.hero),
-    bio: text(snapshot.bio, localProfile.bio),
-    shortBio: text(snapshot.bio, localProfile.shortBio),
-    location: text(snapshot.location),
-    email: text(snapshot.email),
-    github: text(snapshot.github),
-    linkedin: text(snapshot.linkedin),
-    resume: text(snapshot.resume) ? resolveProjectImageUrl(text(snapshot.resume)) : '',
-    profileImageUrl: text(snapshot.profileImageUrl) ? resolveProjectImageUrl(text(snapshot.profileImageUrl)) : undefined,
-    socials: snapshot.socialLinks ?? [],
+    name: localProfile.name,
+    title: localProfile.title,
+    shortTitle: localProfile.shortTitle,
+    headline: localProfile.headline,
+    hero: localProfile.hero,
+    bio: localProfile.bio,
+    shortBio: localProfile.shortBio,
+    location: localProfile.location,
+    email: localProfile.email,
+    github: localProfile.github,
+    linkedin: text(snapshot.linkedin).trim() || localProfile.linkedin,
+    // Use only explicitly selected public assets; database upload URLs may be private.
+    resume: localProfile.resume,
+    profileImageUrl: localProfile.profileImageUrl,
+    socials: [...new Map([...(snapshot.socialLinks ?? []), ...localProfile.socials].filter((item) => typeof item.href === 'string').map((item) => [item.href as string, item] as const)).values()],
     skills: skillGroups.length ? skillGroups : localProfile.skills,
-    projects,
+    projects: projects.length ? projects : localProfile.projects,
     blogPosts: blogPosts.length ? blogPosts : localProfile.blogPosts,
-    experience,
-    education,
+    experience: experience.length ? experience : localProfile.experience,
+    education: education.length ? education : localProfile.education,
     research,
     achievements,
     services

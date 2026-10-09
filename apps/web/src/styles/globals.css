@@ -47,11 +47,13 @@ html.dark {
   --destructive: 236 143 132;
 }
 
-html { scroll-behavior: smooth; }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: rgb(var(--background)); color: rgb(var(--foreground)); }
+html { scroll-behavior: smooth; max-width: 100%; overflow-x: clip; }
+body { margin: 0; min-width: 0; max-width: 100%; min-height: 100vh; overflow-x: clip; background: rgb(var(--background)); color: rgb(var(--foreground)); }
 * { box-sizing: border-box; }
-#root { min-height: 100vh; }
-img { display: block; max-width: 100%; }
+#root { min-width: 0; max-width: 100%; min-height: 100vh; }
+img { display: block; max-width: 100%; height: auto; }
+main { min-width: 0; }
+main :where(h1, h2, h3, h4, p, li, a, figcaption, article) { overflow-wrap: break-word; min-width: 0; }
 p { margin: 0; }
 a { color: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
@@ -60,7 +62,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @layer components {
   .section-shell { @apply border border-border bg-card shadow-sm; }
   .eyebrow { @apply text-xs font-semibold uppercase tracking-[0.16em] text-primary; }
-  .section-title { @apply font-display text-4xl font-medium leading-[1.08] tracking-[-0.035em] text-foreground sm:text-5xl md:text-6xl; }
+  .section-title { @apply break-words font-display text-[2rem] font-medium leading-[1.08] tracking-[-0.035em] text-foreground sm:text-5xl md:text-6xl; }
   .section-copy { @apply max-w-2xl text-base leading-7 text-muted-foreground md:text-lg md:leading-8; }
   .editorial-rule { @apply border-t border-border; }
   .text-link { @apply font-medium text-primary underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary; }

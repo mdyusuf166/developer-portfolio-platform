@@ -5,7 +5,6 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { AdminApiError, getAdminResourceApi } from '../../lib/admin-api';
 import { uploadsApi } from '../../lib/admin-api';
-import { resolveProjectImageUrl } from '../../lib/public-projects';
 
 const RESOURCE_TITLES: Record<string, string> = {
   projects: 'Projects',
@@ -33,7 +32,8 @@ const resourceFieldMap: Record<string, ResourceField[]> = {
     { name: 'email', label: 'Email', type: 'email' },
     { name: 'github', label: 'GitHub URL', type: 'url' },
     { name: 'linkedin', label: 'LinkedIn URL', type: 'url' },
-    { name: 'socials', label: 'Other social links (label | URL per line)', type: 'list' }
+    { name: 'socials', label: 'Other social links (label | URL per line)', type: 'list' },
+    { name: 'profileImagePublic', label: 'Publish profile image', type: 'checkbox' }
   ],
   projects: [
     { name: 'slug', label: 'Slug', required: true },
@@ -121,21 +121,21 @@ const resourceFieldMap: Record<string, ResourceField[]> = {
   ]
 };
 
-const uploadFieldMap: Record<string, Array<{ field: string; label: string; accept: string; purpose: string; image?: boolean }>> = {
+const uploadFieldMap: Record<string, Array<{ field: string; assetField: string; label: string; accept: string; purpose: string; image?: boolean }>> = {
   profile: [
-    { field: 'profileImageUrl', label: 'Profile image', accept: 'image/jpeg,image/png,image/webp,image/svg+xml', purpose: 'profile-image', image: true },
-    { field: 'resumeUrl', label: 'Resume (PDF)', accept: 'application/pdf', purpose: 'resume' }
+    { field: 'profileImageUrl', assetField: 'profileImageAssetId', label: 'Profile image', accept: 'image/jpeg,image/png,image/webp,image/svg+xml', purpose: 'profile-image', image: true },
+    { field: 'resumeUrl', assetField: 'resumeAssetId', label: 'Resume (PDF)', accept: 'application/pdf', purpose: 'resume' }
   ],
-  projects: [{ field: 'imageUrl', label: 'Project cover image', accept: 'image/jpeg,image/png,image/webp,image/svg+xml', purpose: 'project-image', image: true }],
+  projects: [{ field: 'imageUrl', assetField: 'imageAssetId', label: 'Project cover image', accept: 'image/jpeg,image/png,image/webp,image/svg+xml', purpose: 'project-image', image: true }],
   research: [
-    { field: 'imageUrl', label: 'Research figure', accept: 'image/jpeg,image/png,image/webp,image/svg+xml', purpose: 'research-figure', image: true },
-    { field: 'fileUrl', label: 'Paper / research PDF', accept: 'application/pdf', purpose: 'research-paper' }
+    { field: 'imageUrl', assetField: 'imageAssetId', label: 'Research figure', accept: 'image/jpeg,image/png,image/webp,image/svg+xml', purpose: 'research-figure', image: true },
+    { field: 'fileUrl', assetField: 'fileAssetId', label: 'Paper / research PDF', accept: 'application/pdf', purpose: 'research-paper' }
   ],
   achievements: [
-    { field: 'imageUrl', label: 'Achievement image', accept: 'image/jpeg,image/png,image/webp,image/svg+xml', purpose: 'achievement-image', image: true },
-    { field: 'documentUrl', label: 'Certificate / document (PDF)', accept: 'application/pdf', purpose: 'achievement-document' }
+    { field: 'imageUrl', assetField: 'imageAssetId', label: 'Achievement image', accept: 'image/jpeg,image/png,image/webp,image/svg+xml', purpose: 'achievement-image', image: true },
+    { field: 'documentUrl', assetField: 'documentAssetId', label: 'Certificate / document (PDF)', accept: 'application/pdf', purpose: 'achievement-document' }
   ],
-  'blog-posts': [{ field: 'coverImageUrl', label: 'Blog cover image', accept: 'image/jpeg,image/png,image/webp,image/svg+xml', purpose: 'blog-cover', image: true }]
+  'blog-posts': [{ field: 'coverImageUrl', assetField: 'coverImageAssetId', label: 'Blog cover image', accept: 'image/jpeg,image/png,image/webp,image/svg+xml', purpose: 'blog-cover', image: true }]
 };
 
 const toInputValue = (value: unknown) => {
@@ -166,7 +166,7 @@ const normalizePayload = (resource: string, values: Record<string, string>) => {
       continue;
     }
 
-    if (key === 'featured' || key === 'current' || key === 'published') {
+    if (key === 'featured' || key === 'current' || key === 'published' || key === 'profileImagePublic') {
       normalized[key] = rawValue === 'true';
       continue;
     }
@@ -232,12 +232,15 @@ export function AdminResourcePage({ resource }: { resource: string }) {
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Record<string, unknown> | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadController, setUploadController] = useState<AbortController | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Record<string, unknown> | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [projectImage, setProjectImage] = useState<File | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File>>({});
   const [clearedFiles, setClearedFiles] = useState<string[]>([]);
+  const [privateReadUrls, setPrivateReadUrls] = useState<Record<string, string>>({});
   const imagePreviews = useMemo(() => Object.fromEntries(Object.entries(selectedFiles).map(([field, file]) => [field, URL.createObjectURL(file)])), [selectedFiles]);
 
   useEffect(() => () => Object.values(imagePreviews).forEach((url) => URL.revokeObjectURL(url)), [imagePreviews]);
@@ -259,6 +262,17 @@ export function AdminResourcePage({ resource }: { resource: string }) {
     void loadItems();
   }, [resource]);
 
+  useEffect(() => {
+    if (!formOpen && !deleteTarget) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (deleteTarget) setDeleteTarget(null);
+      else setFormOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [deleteTarget, formOpen]);
+
   const filteredItems = useMemo(() => {
     if (!query.trim()) {
       return items;
@@ -273,6 +287,7 @@ export function AdminResourcePage({ resource }: { resource: string }) {
     setProjectImage(null);
     setSelectedFiles({});
     setClearedFiles([]);
+    setPrivateReadUrls({});
     setFieldErrors({});
     setSuccess('');
     setFormOpen(true);
@@ -283,6 +298,11 @@ export function AdminResourcePage({ resource }: { resource: string }) {
     setProjectImage(null);
     setSelectedFiles({});
     setClearedFiles([]);
+    setPrivateReadUrls({});
+    for (const field of uploadFieldMap[resource] ?? []) {
+      const assetId = item[field.assetField];
+      if (typeof assetId === 'string') void uploadsApi.readUrl(assetId).then((url) => setPrivateReadUrls((current) => ({ ...current, [field.field]: url }))).catch(() => undefined);
+    }
     setFieldErrors({});
     setSuccess('');
     setFormOpen(true);
@@ -301,6 +321,9 @@ export function AdminResourcePage({ resource }: { resource: string }) {
     if (resource === 'blog-posts' && payload.published === true && !payload.publishedAt) payload.publishedAt = new Date().toISOString();
     if (resource === 'blog-posts' && payload.published === false) payload.publishedAt = null;
     setSubmitting(true);
+    const controller = new AbortController();
+    setUploadController(controller);
+    setUploadProgress(0);
     setFieldErrors({});
     setError('');
     const uploadedAssetIds: string[] = [];
@@ -309,15 +332,19 @@ export function AdminResourcePage({ resource }: { resource: string }) {
       for (const field of uploadFieldMap[resource] ?? []) {
         const selectedFile = selectedFiles[field.field] ?? (field.field === 'imageUrl' ? projectImage : undefined);
         if (selectedFile) {
-          const uploadedAsset = await uploadsApi.upload(selectedFile, field.purpose);
+          const uploadedAsset = await uploadsApi.upload(selectedFile, field.purpose, { signal: controller.signal, onProgress: setUploadProgress });
           payload[field.field] = uploadedAsset.url;
+          payload[field.assetField] = uploadedAsset.id;
           if (typeof uploadedAsset.id === 'string') uploadedAssetIds.push(uploadedAsset.id);
         } else if (clearedFiles.includes(field.field)) {
           payload[field.field] = null;
+          payload[field.assetField] = null;
         } else if (typeof editingItem?.[field.field] === 'string') {
           payload[field.field] = editingItem[field.field];
+          payload[field.assetField] = typeof editingItem[field.assetField] === 'string' ? editingItem[field.assetField] : null;
         }
       }
+      setUploadController(null);
 
       if (editingItem?.id) {
         await api.update(String(editingItem.id), payload as Record<string, unknown>);
@@ -330,9 +357,10 @@ export function AdminResourcePage({ resource }: { resource: string }) {
     } catch (caughtError) {
       await Promise.all(uploadedAssetIds.map((id) => uploadsApi.remove(id).catch(() => undefined)));
       setFieldErrors(parseFieldErrors(caughtError));
-      setError(caughtError instanceof Error ? caughtError.message : 'Unable to save the record.');
+      setError(caughtError instanceof DOMException && caughtError.name === 'AbortError' ? 'Upload cancelled.' : caughtError instanceof AdminApiError && caughtError.code === 'UPLOAD_AUTHORIZATION_INVALID' ? 'Upload authorization expired. Select the file again to retry.' : caughtError instanceof Error ? caughtError.message : 'Unable to save the record.');
     } finally {
       setSubmitting(false);
+      setUploadController(null);
     }
   };
 
@@ -381,7 +409,7 @@ export function AdminResourcePage({ resource }: { resource: string }) {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search records"
-            className="max-w-sm border-slate-700 bg-slate-950 text-white placeholder:text-slate-500"
+            className="w-full max-w-sm border-slate-700 bg-slate-950 text-white placeholder:text-slate-500"
             aria-label="Search records"
           />
           <p className="text-sm text-slate-400">{filteredItems.length} visible records</p>
@@ -413,12 +441,12 @@ export function AdminResourcePage({ resource }: { resource: string }) {
               const excerpt = (record.summary ?? record.description ?? record.excerpt ?? record.role ?? record.category ?? 'Portfolio content') as string;
 
               return (
-                <div key={String(record.id ?? `${resource}-${index}`)} className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="space-y-1">
-                    <h3 className="text-base font-medium text-white">{title}</h3>
-                    <p className="text-sm text-slate-400">{String(excerpt).slice(0, 140)}</p>
+                <div key={String(record.id ?? `${resource}-${index}`)} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0 space-y-1">
+                    <h3 className="break-words text-base font-medium text-white">{title}</h3>
+                    <p className="break-words text-sm text-slate-400">{String(excerpt).slice(0, 140)}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button variant="outline" className="border-slate-700 text-slate-100" onClick={() => openEditForm(record)}>
                       <Pencil className="mr-2 h-4 w-4" />
                       Edit
@@ -436,10 +464,10 @@ export function AdminResourcePage({ resource }: { resource: string }) {
       </div>
 
       {formOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4" aria-modal="true" role="dialog">
-          <div className="w-full max-w-2xl rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-slate-950/75 p-3 sm:items-center sm:p-4" aria-modal="true" role="dialog" aria-labelledby="admin-resource-dialog-title">
+          <div className="my-auto max-h-[calc(100vh-1.5rem)] w-full min-w-0 max-w-2xl overflow-y-auto rounded-3xl border border-slate-700 bg-slate-900 p-4 shadow-2xl sm:p-6">
             <div className="mb-5 flex items-center justify-between gap-3">
-              <h3 className="text-xl font-semibold text-white">{editingItem ? 'Edit item' : 'Create item'}</h3>
+              <h3 id="admin-resource-dialog-title" className="text-xl font-semibold text-white">{editingItem ? 'Edit item' : 'Create item'}</h3>
               <Button variant="ghost" onClick={() => setFormOpen(false)} aria-label="Close dialog">
                 Close
               </Button>
@@ -468,7 +496,7 @@ export function AdminResourcePage({ resource }: { resource: string }) {
                     required: field.required,
                     'aria-invalid': hasError,
                     'aria-describedby': hasError ? `${labelId}-error` : undefined,
-                    className: `border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 ${hasError ? 'border-rose-500' : ''}`
+                    className: `w-full min-h-11 min-w-0 rounded-md border px-3 py-2 border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 ${hasError ? 'border-rose-500' : ''}`
                   };
 
                   return (
@@ -509,9 +537,9 @@ export function AdminResourcePage({ resource }: { resource: string }) {
                 return <div key={field.field} className="space-y-2 md:col-span-2">
                   <label htmlFor={fieldId} className="block text-sm font-medium text-slate-200">{field.label}</label>
                   {field.image && selectedFile ? <img className="max-h-48 rounded-lg border border-slate-700 object-contain" src={imagePreviews[field.field]} alt={`Preview of ${selectedFile.name}`} /> : null}
-                  {field.image && !selectedFile && existingUrl && !clearedFiles.includes(field.field) ? <img className="max-h-48 rounded-lg border border-slate-700 object-contain" src={resolveProjectImageUrl(existingUrl)} alt={`Current ${field.label.toLowerCase()}`} /> : null}
-                  {!field.image && existingUrl && !clearedFiles.includes(field.field) ? <a className="block text-sm text-sky-300 underline" href={resolveProjectImageUrl(existingUrl)} target="_blank" rel="noreferrer">Open current file</a> : null}
-                  {selectedFile ? <p className="text-sm text-sky-200">Selected: {selectedFile.name}</p> : null}
+                  {field.image && !selectedFile && privateReadUrls[field.field] && !clearedFiles.includes(field.field) ? <img className="max-h-48 rounded-lg border border-slate-700 object-contain" src={privateReadUrls[field.field]} alt={`Current ${field.label.toLowerCase()}`} /> : null}
+                  {!field.image && privateReadUrls[field.field] && !clearedFiles.includes(field.field) ? <a className="block text-sm text-sky-300 underline" href={privateReadUrls[field.field]} target="_blank" rel="noreferrer">Open current file</a> : null}
+                  {selectedFile ? <p className="break-all text-sm text-sky-200">Selected: {selectedFile.name}</p> : null}
                   {selectedFile || existingUrl ? <Button type="button" variant="outline" size="sm" onClick={() => {
                     setSelectedFiles((files) => { const next = { ...files }; delete next[field.field]; return next; });
                     setProjectImage(null);
@@ -525,12 +553,13 @@ export function AdminResourcePage({ resource }: { resource: string }) {
                       setClearedFiles((cleared) => cleared.filter((key) => key !== field.field));
                     }
                   }} className="block w-full text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-700 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400" />
-                  <p id={`${fieldId}-help`} className="text-xs text-slate-400">JPEG, PNG, WebP, SVG, or PDF as appropriate; maximum 10 MB. Stored on local development disk.</p>
+                  <p id={`${fieldId}-help`} className="text-xs text-slate-400">JPEG, PNG, WebP, SVG, or PDF as appropriate; maximum 10 MiB. Unpublished and private until linked to published content.</p>
                 </div>;
               })}
 
-              <div className="flex justify-end gap-3 pt-2">
-                <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
+              <div className="flex flex-wrap justify-end gap-3 pt-2">
+                {uploadController ? <Button type="button" variant="outline" onClick={() => uploadController.abort()}>Cancel upload ({uploadProgress}%)</Button> : null}
+                <Button type="button" variant="outline" onClick={() => setFormOpen(false)} disabled={submitting}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={submitting}>
@@ -543,11 +572,11 @@ export function AdminResourcePage({ resource }: { resource: string }) {
       ) : null}
 
       {deleteTarget ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4" role="dialog" aria-modal="true">
-          <div className="w-full max-w-md rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
-            <h3 className="text-xl font-semibold text-white">Delete {RESOURCE_TITLES[resource] ?? 'item'}?</h3>
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-slate-950/75 p-3 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="admin-delete-dialog-title">
+          <div className="my-auto w-full min-w-0 max-w-md rounded-3xl border border-slate-700 bg-slate-900 p-4 shadow-2xl sm:p-6">
+            <h3 id="admin-delete-dialog-title" className="break-words text-xl font-semibold text-white">Delete {RESOURCE_TITLES[resource] ?? 'item'}?</h3>
             <p className="mt-3 text-sm text-slate-300">This action cannot be undone.</p>
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex flex-wrap justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)}>
                 Cancel
               </Button>

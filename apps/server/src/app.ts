@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
-import { projectUploadsDirectory } from './lib/project-upload.js';
+import { unavailableUploadStorage, type UploadStorage } from './lib/upload-storage.js';
 
 import { env } from './config/env.js';
 import { errorHandler } from './middleware/error-handler.js';
@@ -15,8 +15,9 @@ import { registerProfileRoutes } from './routes/profile.js';
 import { registerProjectUploadRoutes } from './routes/project-upload.js';
 import { ok } from './response/api-response.js';
 
-export const createApp = (): Express => {
+export const createApp = (options: { uploadStorage?: UploadStorage } = {}): Express => {
   const app = express();
+  const uploadStorage = options.uploadStorage ?? unavailableUploadStorage;
 
   app.disable('x-powered-by');
   app.set('trust proxy', env.trustProxy);
@@ -28,25 +29,12 @@ export const createApp = (): Express => {
     })
   );
   app.use(express.json({ limit: '1mb' }));
-  app.use('/uploads', express.static(projectUploadsDirectory, {
-    fallthrough: true,
-    maxAge: '1d',
-    setHeaders: (res, path) => {
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      if (path.toLowerCase().endsWith('.svg')) {
-        res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src data:");
-      }
-      if (path.toLowerCase().endsWith('.pdf')) {
-        res.setHeader('Content-Disposition', 'attachment');
-      }
-    }
-  }));
   app.use(requestIdMiddleware);
   app.use('/api', rateLimit({ bucket: 'api', windowSeconds: 60, points: 300 }));
 
   registerHealthRoutes(app);
   registerProfileRoutes(app);
-  registerProjectUploadRoutes(app);
+  registerProjectUploadRoutes(app, uploadStorage);
   registerAuthRoutes(app);
   registerAdminContentRoutes(app);
 

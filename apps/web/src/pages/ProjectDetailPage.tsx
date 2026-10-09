@@ -32,7 +32,7 @@ export function ProjectDetailPage() {
     <PageMeta title={project.title} description={project.shortDescription} />
     <article className="py-5 md:py-10">
       <Link to="/projects" className="inline-flex min-h-11 items-center gap-2 text-sm text-link"><ArrowLeft className="h-4 w-4" aria-hidden="true" /> All projects</Link>
-      <header className="grid gap-8 border-b border-border py-8 md:grid-cols-[minmax(0,1fr)_minmax(15rem,0.55fr)] md:items-end md:py-12">
+      <header className="grid min-w-0 gap-8 border-b border-border py-8 md:grid-cols-[minmax(0,1fr)_minmax(0,0.55fr)] md:items-end md:py-12">
         <div><p className="eyebrow">Case study / {project.category}</p><h1 className="section-title mt-4">{project.title}</h1><p className="section-copy mt-5">{project.shortDescription}</p></div>
         <div className="flex flex-wrap gap-3 md:justify-end">
           {project.githubUrl ? <Button asChild><a href={project.githubUrl} target="_blank" rel="noreferrer"><Github className="mr-2 h-4 w-4" aria-hidden="true" /> Source code</a></Button> : null}
@@ -40,7 +40,7 @@ export function ProjectDetailPage() {
         </div>
       </header>
       {project.image ? <figure className="py-8 md:py-10"><img className="max-h-[42rem] w-full border border-border object-cover" src={project.image.src} alt={project.image.alt} />{project.image.caption ? <figcaption className="mt-3 text-sm text-muted-foreground">{project.image.caption}</figcaption> : null}</figure> : null}
-      <div className="grid gap-12 py-8 md:grid-cols-[minmax(0,1fr)_15rem] md:gap-16 md:py-10">
+      <div className="grid min-w-0 gap-12 py-8 md:grid-cols-[minmax(0,1fr)_minmax(0,15rem)] md:gap-16 md:py-10">
         <div className="space-y-10">
           <section><p className="eyebrow">Overview</p><h2 className="mt-2 font-display text-2xl font-medium">What this work is</h2><p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">{project.description || project.shortDescription}</p></section>
           {sections.map((section) => <section key={section.title} className="border-t border-border pt-7"><h2 className="font-display text-2xl font-medium">{section.title}</h2><p className="mt-3 max-w-3xl text-base leading-8 text-muted-foreground">{section.content}</p></section>)}

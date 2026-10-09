@@ -2,6 +2,7 @@ import type { Router } from 'express';
 
 import { profileController } from '../controllers/profile.controller.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { requireOwnedAssetReferences } from '../middleware/asset-ownership.js';
 import { requireRole } from '../middleware/authorization.js';
 import { AppError } from '../errors/AppError.js';
 import { profileService } from '../services/profile.service.js';
@@ -31,6 +32,6 @@ export const registerProfileRoutes = (router: Router) => {
       res.status(200).json(ok(await profileService.saveAdminProfile(req.body), req.id));
     } catch (error) { next(error); }
   };
-  router.post('/api/v1/admin/profile', ...adminOnly, validateProfile, saveProfile);
-  router.patch('/api/v1/admin/profile', ...adminOnly, validateProfile, saveProfile);
+  router.post('/api/v1/admin/profile', ...adminOnly, validateProfile, requireOwnedAssetReferences, saveProfile);
+  router.patch('/api/v1/admin/profile', ...adminOnly, validateProfile, requireOwnedAssetReferences, saveProfile);
 };

@@ -17,24 +17,34 @@ import { socialLinks } from './socials';
 // Keep personal content centralized here so the UI remains separate from the data layer.
 export const profile: Profile = {
   name: 'MD MAHTAB AHMED MAHIN',
-  title: 'AI / ML ENGINEER',
-  shortTitle: 'AI / ML Engineer',
-  headline: 'Building intelligent systems, machine learning applications, and generative AI experiences.',
-  bio: 'AI/ML Engineer focused on building intelligent systems, machine learning applications, generative AI systems, and production-quality software.',
-  shortBio: 'Focused on machine learning, generative AI, and software engineering.',
-  location: '',
-  email: '',
-  availability: 'Portfolio in progress',
-  github: '',
+  title: 'CSE Undergraduate · Software & AI/ML',
+  shortTitle: 'CSE Undergraduate',
+  headline: 'Building useful software while exploring applied AI and machine learning.',
+  bio: 'I am a Computer Science and Engineering undergraduate at Metropolitan University in Sylhet. I work on software and full-stack projects while exploring applied AI and machine learning.',
+  shortBio: 'Software engineering and full-stack development, with a growing focus on AI/ML.',
+  location: 'Sylhet',
+  email: 'mahtabmahim2004@gmail.com',
+  availability: 'Open to internship opportunities',
+  github: 'https://github.com/mahtabmahim2004',
   linkedin: '',
-  resume: '',
-  hero: 'Building intelligent systems with machine learning and generative AI.',
-  about: 'My interests include machine learning, deep learning, generative AI, LLMs, RAG, NLP, AI engineering, software engineering, cybersecurity, and research.',
-  researchInterests: ['Machine Learning', 'Generative AI and LLMs', 'RAG and NLP', 'AI Security'],
+  resume: '/resume.jpg',
+  profileImageUrl: '/profile-photo.jpg',
+  hero: 'Building useful software while exploring applied AI and machine learning.',
+  about: 'I am a CSE undergraduate interested in software engineering, full-stack development, and interdisciplinary computing. I collaborate with developers on science and technology startup and agency initiatives, exploring product ideas and software together. The topics below are interests and learning directions, not claims of completed research.',
+  researchInterests: [
+    { title: 'Artificial intelligence and machine learning', description: 'Explore practical learning methods and how they can support useful software. Machine learning is listed on the CV as an area of interest.', area: 'AI, ML, and Deep Learning' },
+    { title: 'Deep learning, computer vision, and neural networks', description: 'Build understanding of neural models for visual recognition and representation learning.', area: 'AI, ML, and Deep Learning' },
+    { title: 'AGI-inspired intelligent systems', description: 'Study reasoning, planning, and adaptive systems as exploratory topics; no production AGI work is claimed.', area: 'Research Interests' },
+    { title: 'Biomedical AI and computational biology', description: 'Explore computational approaches to biological and health-related questions.', area: 'Research Interests' },
+    { title: 'Quantum computing', description: 'Learn quantum computing concepts and algorithms from a computational perspective.', area: 'Research Interests' },
+    { title: 'Cybersecurity and secure software', description: 'Understand how to design, build, and assess software with security in mind.', area: 'Systems, Cybersecurity, and Embedded Computing' },
+    { title: 'Robotics and embedded intelligence', description: 'Explore software that connects intelligent behavior with physical and embedded systems.', area: 'Systems, Cybersecurity, and Embedded Computing' },
+    { title: 'Scientific and interdisciplinary computing', description: 'Use computation to investigate questions across science and technology. No scientific computing library is named on the CV or in this repository.', area: 'Academic and Scientific Computing' }
+  ],
   stats: [
-    { label: 'Focus', value: 'Machine Learning and Deep Learning' },
-    { label: 'Interests', value: 'Generative AI, LLMs, and RAG' },
-    { label: 'Foundation', value: 'Software Engineering' }
+    { label: 'Study', value: 'Computer Science and Engineering' },
+    { label: 'Build', value: 'Software and full-stack projects' },
+    { label: 'Explore', value: 'AI/ML and interdisciplinary computing' }
   ],
   socials: socialLinks.map((item) => ({
     label: item.label ?? item.name ?? 'Link',
@@ -49,7 +59,7 @@ export const profile: Profile = {
   achievements,
   services,
   blogPosts,
-  aboutHighlights: ['Machine Learning', 'Generative AI and LLMs', 'NLP and RAG', 'AI Security', 'Software Engineering', 'Research']
+  aboutHighlights: ['Computer Science and Engineering', 'Software engineering', 'Full-stack development', 'AI and machine learning', 'Secure software', 'Developer collaboration']
 };
 
 const profileSchema = z.object({
@@ -65,9 +75,10 @@ const profileSchema = z.object({
   github: z.string(),
   linkedin: z.string(),
   resume: z.string(),
+  profileImageUrl: z.string().optional(),
   hero: z.string().min(1),
   about: z.string().min(1),
-  researchInterests: z.array(z.string()),
+  researchInterests: z.array(z.object({ title: z.string().min(1), description: z.string().min(1), area: z.string().min(1).optional() })),
   stats: z.array(z.object({ label: z.string(), value: z.string() })),
   socials: z.array(z.object({ label: z.string(), href: z.string() })),
   navigation: z.array(z.object({ label: z.string(), href: z.string() })),

@@ -58,7 +58,7 @@ export function AdminDashboardPage() {
 
   return (
     <div className="space-y-8 text-slate-100">
-      <section className="rounded-3xl border border-slate-800 bg-slate-950/70 p-6">
+      <section className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4 sm:p-6">
         <p className="text-xs uppercase tracking-[0.2em] text-sky-300">Overview</p>
         <h2 className="mt-3 text-3xl font-semibold text-white">Dashboard overview</h2>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
@@ -92,8 +92,8 @@ export function AdminDashboardPage() {
         </section>
       ) : null}
 
-      <section className="rounded-3xl border border-slate-800 bg-slate-950/70 p-6">
-        <div className="mb-5 flex items-center justify-between gap-3">
+      <section className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4 sm:p-6">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-xl font-semibold text-white">Operational modules</h3>
           <Link to="/admin/projects" className="inline-flex items-center gap-2 text-sm text-sky-300 hover:text-sky-200">
             Open catalog <ArrowRight className="h-4 w-4" />

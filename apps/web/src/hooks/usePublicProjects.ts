@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 
 import { getPublishedProjects } from '../lib/public-projects';
+import { projects as staticProjects } from '../data/projects';
 import type { Project } from '../types';
 import { PreviewDataContext } from '../preview/preview-context';
 
@@ -16,10 +17,11 @@ export function usePublicProjects() {
 
     getPublishedProjects(controller.signal)
       .then((publishedProjects) => {
-        setProjects(publishedProjects);
+        setProjects(publishedProjects.length ? publishedProjects : staticProjects);
       })
       .catch((caughtError: unknown) => {
         if (!controller.signal.aborted) {
+          setProjects(staticProjects);
           setError(caughtError instanceof Error ? caughtError.message : 'Unable to load published projects.');
         }
       })

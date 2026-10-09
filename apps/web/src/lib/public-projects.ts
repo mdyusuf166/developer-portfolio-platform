@@ -1,6 +1,21 @@
 import type { Project } from '../types';
 
-export const publicApiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
+const configuredApiBaseUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '');
+const isLoopbackApiUrl = (value: string) => {
+  try {
+    const hostname = new URL(value).hostname.replace(/^\[|\]$/g, '').toLowerCase();
+    return hostname === 'localhost' || hostname.endsWith('.localhost') || hostname === '::1' || hostname === '0.0.0.0' || /^127\./.test(hostname);
+  } catch {
+    return false;
+  }
+};
+
+// Production builds must never send a visitor's browser to a localhost API.
+export const publicApiBaseUrl = configuredApiBaseUrl && !(import.meta.env.PROD && isLoopbackApiUrl(configuredApiBaseUrl))
+  ? configuredApiBaseUrl
+  : '';
+
+const getUrlBase = () => publicApiBaseUrl || window.location.origin;
 
 export type ProjectRecord = {
   slug: string;
@@ -23,6 +38,22 @@ export type ProjectRecord = {
   status: string;
 };
 
+export function isPrivateUploadUrl(value: string | null | undefined): boolean {
+  if (!value) return false;
+  try {
+    let pathname = new URL(value, getUrlBase()).pathname;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      if (/^\/uploads(?:\/|$)/i.test(pathname)) return true;
+      const decoded = decodeURIComponent(pathname);
+      if (decoded === pathname) return false;
+      pathname = decoded;
+    }
+    return /^\/uploads(?:\/|$)/i.test(pathname);
+  } catch {
+    return true;
+  }
+}
+
 type ProjectResponse = {
   success: boolean;
   data?: ProjectRecord[];
@@ -36,7 +67,7 @@ type ProjectDetailResponse = {
 };
 
 export function toProject(record: ProjectRecord): Project {
-  const imageUrl = record.imageUrl ?? undefined;
+  const imageUrl = isPrivateUploadUrl(record.imageUrl) ? undefined : record.imageUrl ?? undefined;
   return {
     slug: record.slug,
     title: record.title,
@@ -52,7 +83,7 @@ export function toProject(record: ProjectRecord): Project {
     learnings: record.learnings ?? [],
     githubUrl: record.githubUrl ?? undefined,
     demoUrl: record.demoUrl ?? undefined,
-    imageUrl: record.imageUrl,
+    imageUrl,
     category: record.category,
     featured: record.featured,
     status: record.status,
@@ -74,7 +105,7 @@ export async function getPublishedProjects(signal?: AbortSignal): Promise<Projec
 }
 
 export function resolveProjectImageUrl(imageUrl: string): string {
-  return new URL(imageUrl, publicApiBaseUrl).toString();
+  return new URL(imageUrl, getUrlBase()).toString();
 }
 
 export async function getPublishedProjectBySlug(slug: string, signal?: AbortSignal): Promise<Project> {

@@ -36,7 +36,7 @@ describe('admin profile first-run', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create item' }));
 
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
-    expect(fetch).toHaveBeenNthCalledWith(2, 'http://localhost:4000/api/v1/admin/profile', expect.objectContaining({ method: 'POST' }));
+    expect(fetch).toHaveBeenNthCalledWith(2, '/api/v1/admin/profile', expect.objectContaining({ method: 'POST' }));
     expect(await screen.findByText('AI / ML ENGINEER')).toBeInTheDocument();
   });
 });

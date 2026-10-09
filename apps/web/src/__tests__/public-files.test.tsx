@@ -19,35 +19,38 @@ const profileSnapshot = {
   blogPosts: [{ id: 'post-1', slug: 'article', title: 'Stored article', excerpt: 'Summary', content: 'Article body', category: 'Engineering', tags: [], coverImageUrl: '/uploads/blog-cover.png', published: true }],
   experience: [],
   education: [],
-  research: [{ id: 'research-1', title: 'Research entry', summary: 'Research summary', methodology: 'Method', area: 'AI', technologies: [], status: 'published', publicationDate: null, publicationUrl: null, paperUrl: null, fileUrl: '/uploads/paper.pdf', imageUrl: '/uploads/figure.png', githubUrl: null, notes: null }],
-  achievements: [{ id: 'achievement-1', title: 'Verified achievement', description: 'Owner-provided description', issuer: null, awardDate: null, credentialUrl: null, imageUrl: '/uploads/award.png', documentUrl: '/uploads/certificate.pdf', status: 'published' }],
+  research: [{ id: 'research-1', title: 'Research entry', summary: 'Research summary', methodology: 'Method', area: 'AI', technologies: [], status: 'published', publicationDate: null, publicationUrl: null, paperUrl: null, fileUrl: '/uploads/%70aper.pdf', imageUrl: '/uploads/%66igure.png', githubUrl: null, notes: null }],
+  achievements: [{ id: 'achievement-1', title: 'Verified achievement', description: 'Owner-provided description', issuer: null, awardDate: null, credentialUrl: null, imageUrl: '/uploads/%61ward.png', documentUrl: '/uploads/certificate.pdf', status: 'published' }],
   services: []
 };
 
 describe('public CMS file rendering', () => {
-  it('renders research figure and paper PDF only when stored paths exist', async () => {
+  it('keeps uploaded research figures and paper documents private', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true, data: profileSnapshot }) }));
     render(<ResearchPage />);
 
-    expect(await screen.findByRole('img', { name: 'Research entry research figure' })).toHaveAttribute('src', 'http://localhost:4000/uploads/figure.png');
-    expect(screen.getByRole('link', { name: 'Open paper PDF' })).toHaveAttribute('href', 'http://localhost:4000/uploads/paper.pdf');
+    await screen.findByRole('heading', { name: 'Research entry' });
+    expect(screen.queryByRole('img', { name: 'Research entry research figure' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Open paper PDF' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'View details' })).not.toBeInTheDocument();
   });
 
-  it('renders achievement image and certificate document only when stored paths exist', async () => {
+  it('keeps uploaded achievement images and certificate documents private', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true, data: profileSnapshot }) }));
     render(<AchievementsPage />);
 
-    expect(await screen.findByRole('img', { name: 'Verified achievement image' })).toHaveAttribute('src', 'http://localhost:4000/uploads/award.png');
-    expect(screen.getByRole('link', { name: 'Open document' })).toHaveAttribute('href', 'http://localhost:4000/uploads/certificate.pdf');
+    await screen.findByRole('heading', { name: 'Verified achievement' });
+    expect(screen.queryByRole('img', { name: 'Verified achievement image' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Open document' })).not.toBeInTheDocument();
   });
 
-  it('renders a stored blog cover image only when one exists', async () => {
+  it('keeps uploaded blog cover images private', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true, data: profileSnapshot }) }));
     render(<MemoryRouter><BlogPage /></MemoryRouter>);
 
     expect(await screen.findByRole('heading', { name: 'Stored article' })).toBeInTheDocument();
-    const cover = document.querySelector('img[src="http://localhost:4000/uploads/blog-cover.png"]');
-    expect(cover).toBeInTheDocument();
+    const cover = document.querySelector('img[src$="/uploads/blog-cover.png"]');
+    expect(cover).not.toBeInTheDocument();
   });
 
   it('loads homepage projects from the same published project API', async () => {

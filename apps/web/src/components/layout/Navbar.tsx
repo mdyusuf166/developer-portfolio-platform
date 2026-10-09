@@ -1,64 +1,105 @@
-import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 
 import { ThemeToggle } from '../common/ThemeToggle';
 import { usePublicPortfolio } from '../../hooks/usePublicPortfolio';
 
+const linkClass = ({ isActive }: { isActive: boolean }) =>
+  `inline-flex min-h-11 items-center text-sm transition-colors hover:text-primary ${isActive ? 'font-semibold text-primary' : 'text-muted-foreground'}`;
+
 export function Navbar() {
   const { profile } = usePublicPortfolio();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    setOpen(false);
+  }, [location.pathname]);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 768px)');
+    const closeOnDesktop = () => { if (media.matches) setOpen(false); };
+    media.addEventListener('change', closeOnDesktop);
+    return () => media.removeEventListener('change', closeOnDesktop);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    menuRef.current?.querySelector<HTMLElement>('a')?.focus();
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      menuButtonRef.current?.focus();
+    };
+  }, [open]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-4 sm:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-8">
         <Link to="/" aria-label={`${profile.name}, home`} className="group flex min-w-0 items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center border border-primary text-sm font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground" aria-hidden="true">M.</span>
+          <span className="grid h-11 w-11 shrink-0 place-items-center border border-primary text-sm font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground" aria-hidden="true">M.</span>
           <span className="min-w-0">
             <span className="block truncate text-sm font-semibold tracking-tight text-foreground">{profile.name}</span>
-            <span className="block text-xs text-muted-foreground">{profile.shortTitle}</span>
+            <span className="block truncate text-xs text-muted-foreground">{profile.shortTitle}</span>
           </span>
         </Link>
 
-        <nav className="hidden min-w-0 flex-1 items-center justify-end gap-5 2xl:flex" aria-label="Main navigation">
-          {profile.navigation.map((item) => (
-            <NavLink key={item.href} to={item.href} end={item.href === '/'} className={({ isActive }) => `whitespace-nowrap text-[0.82rem] transition-colors hover:text-primary ${isActive ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
         <div className="flex shrink-0 items-center gap-1">
           <ThemeToggle />
-          <Link to="/contact" className="hidden items-center gap-1.5 border-b border-primary px-1 py-2 text-sm font-semibold text-primary transition-colors hover:border-accent hover:text-accent-foreground xl:inline-flex">
+          <Link to="/contact" className="hidden min-h-11 items-center gap-1.5 border-b border-primary px-1 text-sm font-semibold text-primary transition-colors hover:border-accent hover:text-accent-foreground sm:inline-flex md:hidden">
             Let&apos;s talk <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </Link>
-          <button type="button" className="grid h-11 w-11 place-items-center text-foreground 2xl:hidden" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((current) => !current)}>
+          <button
+            ref={menuButtonRef}
+            type="button"
+            className="grid h-11 w-11 place-items-center text-foreground md:hidden"
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            onClick={() => setOpen((current) => !current)}
+          >
             {open ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
           </button>
         </div>
       </div>
 
-      <AnimatePresence initial={false}>
-        {open ? (
-          <motion.div id="mobile-menu" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden border-t border-border bg-background 2xl:hidden">
-            <nav aria-label="Mobile navigation" className="mx-auto grid max-w-7xl grid-cols-2 px-5 py-4 sm:px-8">
-              {profile.navigation.map((item) => (
-                <NavLink key={item.href} to={item.href} end={item.href === '/'} onClick={() => setOpen(false)} className={({ isActive }) => `border-b border-border px-2 py-3 text-sm ${isActive ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      <nav className="mx-auto hidden w-full min-w-0 max-w-7xl border-t border-border px-4 py-2 sm:px-8 md:block" aria-label="Main navigation">
+        <div className="flex w-full min-w-0 flex-wrap gap-x-4 gap-y-1">
+          {profile.navigation.map((item) => (
+            <NavLink key={item.href} to={item.href} end={item.href === '/'} className={linkClass}>
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
+      </nav>
+
+      {open ? (
+        <div
+          id="mobile-menu"
+          ref={menuRef}
+          className="border-t border-border bg-background md:hidden"
+        >
+          <nav aria-label="Mobile navigation" className="mx-auto max-h-[calc(100vh-5.5rem)] max-w-7xl overflow-y-auto px-4 py-2 sm:px-8">
+            {profile.navigation.map((item) => (
+              <NavLink
+                key={item.href}
+                to={item.href}
+                end={item.href === '/'}
+                onClick={() => setOpen(false)}
+                className={({ isActive }) => `flex min-h-12 items-center border-b border-border text-base ${isActive ? 'font-semibold text-primary' : 'text-foreground'}`}
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      ) : null}
     </header>
   );
 }

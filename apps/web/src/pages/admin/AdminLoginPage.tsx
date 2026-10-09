@@ -53,7 +53,7 @@ export function AdminLoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_32%),linear-gradient(135deg,#020617,#0f172a_40%,#111827)] px-4 py-12">
-      <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/80 p-5 shadow-2xl backdrop-blur-sm sm:p-8">
         <div className="mb-8 text-center">
           <p className="text-xs uppercase tracking-[0.25em] text-sky-300">Portfolio admin</p>
           <h1 className="mt-4 text-3xl font-semibold text-white">Admin access</h1>

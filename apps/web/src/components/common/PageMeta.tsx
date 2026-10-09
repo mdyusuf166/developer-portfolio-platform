@@ -10,7 +10,7 @@ export function PageMeta({
   robots?: string;
 }) {
   useEffect(() => {
-    const siteTitle = 'MD MAHTAB AHMED MAHIN — AI / ML Engineer';
+    const siteTitle = 'MD MAHTAB AHMED MAHIN — CSE Undergraduate';
     const pageTitle = title === 'Home' ? siteTitle : `${title} | ${siteTitle}`;
     document.title = pageTitle;
 

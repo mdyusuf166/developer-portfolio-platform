@@ -18,7 +18,7 @@ export function EducationPage() {
         ) : (
           <div className="divide-y divide-border border-b border-border">
             {profile.education.map((item, index) => (
-              <article key={`${item.university}-${item.degree}`} className="grid gap-5 py-8 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-start sm:gap-8 md:py-10">
+              <article key={`${item.university}-${item.degree}`} className="grid min-w-0 gap-5 py-8 sm:grid-cols-[3rem_minmax(0,1fr)_minmax(0,auto)] sm:items-start sm:gap-8 md:py-10">
                 <span className="font-mono text-sm text-accent-foreground">{String(index + 1).padStart(2, '0')}</span>
                 <div><p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-primary"><GraduationCap className="h-4 w-4" aria-hidden="true" />{item.department ?? item.school ?? 'Academic program'}</p><h2 className="mt-3 font-display text-2xl font-medium">{item.degree}</h2><p className="mt-2 text-sm text-muted-foreground">{item.school ?? item.university}</p>{(item.coursework ?? item.relevantCoursework ?? []).length ? <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2">{(item.coursework ?? item.relevantCoursework ?? []).map((course) => <li key={course} className="text-xs text-muted-foreground">{course}</li>)}</ul> : null}</div>
                 <span className="text-sm text-muted-foreground">{item.period}</span>

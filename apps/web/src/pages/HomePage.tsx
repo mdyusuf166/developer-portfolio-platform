@@ -14,17 +14,18 @@ export function HomePage() {
 
   return (
     <>
-      <PageMeta title="Home" description="MD Mahtab Ahmed Mahin, AI and ML engineer focused on machine learning, generative AI, and software engineering." />
+      <PageMeta title="Home" description="MD Mahtab Ahmed Mahin, a Computer Science and Engineering undergraduate focused on software and exploring AI/ML." />
 
-      <section className="grid min-h-[70vh] items-center gap-12 py-12 md:grid-cols-[minmax(0,1.15fr)_minmax(17rem,0.85fr)] md:gap-16 md:py-20" aria-labelledby="home-heading">
-        <div className="relative">
+      <section className="grid min-w-0 items-start gap-12 py-10 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:gap-16 md:py-14" aria-labelledby="home-heading">
+        <div className="relative min-w-0">
           <p className="eyebrow mb-7 flex items-center gap-3"><span className="h-px w-9 bg-accent" /> {profile.title}</p>
-          {profile.profileImageUrl ? <img className="mb-7 h-24 w-24 rounded-full object-cover ring-4 ring-muted" src={profile.profileImageUrl} alt={profile.name} /> : null}
-          <h1 id="home-heading" className="max-w-3xl font-display text-[clamp(3.1rem,8vw,6.8rem)] font-medium leading-[0.98] tracking-[-0.055em] text-foreground">{profile.name}</h1>
+          {profile.profileImageUrl ? <img className="mb-7 h-24 w-24 max-w-full rounded-full object-cover ring-4 ring-muted" width={96} height={96} src={profile.profileImageUrl} alt={`Portrait of ${profile.name}`} /> : null}
+          <h1 id="home-heading" className="max-w-3xl break-words font-display text-[clamp(2.05rem,8vw,5.5rem)] font-medium leading-[1.08] tracking-[-0.045em] text-foreground">{profile.name}</h1>
           <p className="mt-7 max-w-2xl text-xl leading-8 text-muted-foreground md:text-2xl md:leading-9">{profile.headline}</p>
           <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground">{profile.shortBio}</p>
           <div className="mt-9 flex flex-wrap items-center gap-4">
             <Link to="/projects" className="inline-flex min-h-12 items-center gap-3 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Explore selected work <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            <Link to="/resume" className="inline-flex min-h-12 items-center gap-2 border border-border px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary hover:text-primary">View CV</Link>
             <Link to="/about" className="inline-flex min-h-12 items-center gap-2 border border-border px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary hover:text-primary">A little about me <ArrowDownRight className="h-4 w-4" aria-hidden="true" /></Link>
           </div>
           {profile.socials.some((social) => social.href ?? social.url) ? (
@@ -37,13 +38,13 @@ export function HomePage() {
           ) : null}
         </div>
 
-        <aside className="relative border-l border-border pl-6 md:ml-4 md:pl-9" aria-labelledby="current-focus-heading">
+        <aside className="relative min-w-0 border-l border-border pl-4 sm:pl-6 md:ml-4 md:pl-9" aria-labelledby="current-focus-heading">
           <span className="absolute -left-px top-0 h-14 w-px bg-accent" aria-hidden="true" />
           <p className="eyebrow">A working direction</p>
           <h2 id="current-focus-heading" className="mt-4 font-display text-3xl font-medium leading-tight text-foreground">Questions at the intersection of learning systems and useful software.</h2>
           <p className="mt-5 text-sm leading-7 text-muted-foreground">{profile.about}</p>
           <ul className="mt-8 divide-y divide-border border-y border-border">
-            {profile.researchInterests.map((interest, index) => <li key={interest} className="flex items-center gap-4 py-3.5"><span className="font-mono text-xs text-accent-foreground">0{index + 1}</span><span className="text-sm font-medium text-foreground">{interest}</span></li>)}
+            {profile.researchInterests.map((interest, index) => <li key={interest.title} className="flex min-w-0 items-start gap-4 py-3.5"><span className="font-mono text-xs text-accent-foreground">{String(index + 1).padStart(2, '0')}</span><span className="min-w-0 break-words text-sm font-medium text-foreground">{interest.title}</span></li>)}
           </ul>
           <Link to="/research" className="mt-5 inline-flex min-h-10 items-center gap-2 text-sm text-link">Explore research interests <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
         </aside>
@@ -78,7 +79,7 @@ export function HomePage() {
       <section className="grid gap-8 border-t border-border py-12 md:grid-cols-[0.7fr_1.3fr] md:py-16" aria-labelledby="next-heading">
         <div><p className="eyebrow">02 / Beyond the build</p><h2 id="next-heading" className="mt-3 font-display text-3xl font-medium">A few threads I keep following.</h2></div>
         <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
-          {profile.researchInterests.slice(0, 4).map((interest) => <div key={interest} className="border-t border-border pt-4"><span className="text-sm font-medium text-foreground">{interest}</span><p className="mt-2 text-sm leading-6 text-muted-foreground">A current area of curiosity, shared as an interest rather than a claim of published work.</p></div>)}
+          {profile.researchInterests.slice(0, 4).map((interest) => <div key={interest.title} className="border-t border-border pt-4"><span className="text-sm font-medium text-foreground">{interest.title}</span><p className="mt-2 text-sm leading-6 text-muted-foreground">{interest.description}</p></div>)}
         </div>
       </section>
 

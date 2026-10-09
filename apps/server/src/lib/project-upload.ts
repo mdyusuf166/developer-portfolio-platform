@@ -1,33 +1,14 @@
-import { randomUUID } from 'node:crypto';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { basename, dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { basename } from 'node:path';
 
 import { AppError } from '../errors/AppError.js';
 
-const currentDirectory = dirname(fileURLToPath(import.meta.url));
-export const projectUploadsDirectory = resolve(process.env.UPLOADS_DIR ?? resolve(currentDirectory, '../../uploads'));
 export const uploadMaxBytes = 10 * 1024 * 1024;
 
-export type ParsedUpload = {
-  file: Buffer;
+export type UploadMetadata = {
+  originalName: string;
   contentType: string;
-  originalName: string;
-  purpose?: string;
-};
-
-export type StoredUpload = {
-  filename: string;
-  originalName: string;
-  mimeType: string;
   size: number;
-  url: string;
   purpose?: string;
-};
-
-const boundaryFrom = (header: string) => {
-  const match = /(?:^|;)\s*boundary=(?:"([^"]+)"|([^;\s]+))/i.exec(header);
-  return match?.[1] ?? match?.[2];
 };
 
 const safeOriginalName = (name: string) => {
@@ -38,49 +19,12 @@ const safeOriginalName = (name: string) => {
   return base || 'upload';
 };
 
-export function parseMultipartUpload(body: Buffer, contentType: string): ParsedUpload {
-  const boundary = boundaryFrom(contentType);
-  if (!boundary || boundary.length > 200) {
-    throw new AppError('A valid multipart boundary is required', 400, 'INVALID_MULTIPART');
-  }
-
-  const delimiter = Buffer.from(`--${boundary}`);
-  let cursor = body.indexOf(delimiter);
-  let upload: ParsedUpload | undefined;
-  let purpose: string | undefined;
-
-  while (cursor >= 0) {
-    cursor += delimiter.length;
-    if (body.subarray(cursor, cursor + 2).equals(Buffer.from('--'))) break;
-    if (body.subarray(cursor, cursor + 2).equals(Buffer.from('\r\n'))) cursor += 2;
-
-    const headerEnd = body.indexOf(Buffer.from('\r\n\r\n'), cursor);
-    if (headerEnd < 0) break;
-    const headerText = body.toString('utf8', cursor, headerEnd);
-    const nextBoundary = body.indexOf(delimiter, headerEnd + 4);
-    if (nextBoundary < 0) break;
-    let valueEnd = nextBoundary;
-    if (body.subarray(valueEnd - 2, valueEnd).equals(Buffer.from('\r\n'))) valueEnd -= 2;
-    const value = body.subarray(headerEnd + 4, valueEnd);
-    const disposition = /content-disposition:\s*form-data;([^\r\n]+)/i.exec(headerText)?.[1] ?? '';
-    const name = /(?:^|;)\s*name="([^"]*)"/i.exec(disposition)?.[1];
-    const originalName = /(?:^|;)\s*filename="([^"]*)"/i.exec(disposition)?.[1];
-
-    if (originalName !== undefined) {
-      if (upload) throw new AppError('Upload one file per request', 400, 'TOO_MANY_FILES');
-      const declaredType = /content-type:\s*([^\r\n]+)/i.exec(headerText)?.[1]?.trim().toLowerCase() ?? 'application/octet-stream';
-      upload = { file: value, contentType: declaredType, originalName: safeOriginalName(originalName) };
-    } else if (name === 'purpose') {
-      purpose = value.toString('utf8').trim().slice(0, 80) || undefined;
-    }
-
-    cursor = nextBoundary;
-  }
-
-  if (!upload) throw new AppError('A file field is required', 400, 'FILE_REQUIRED');
-  upload.purpose = purpose;
-  return upload;
-}
+export const normalizeUploadMetadata = (input: UploadMetadata): UploadMetadata => ({
+  originalName: safeOriginalName(input.originalName),
+  contentType: input.contentType.trim().toLowerCase(),
+  size: input.size,
+  purpose: input.purpose?.trim().slice(0, 80) || undefined
+});
 
 const svgIsSafe = (file: Buffer) => {
   const text = file.toString('utf8');
@@ -89,38 +33,27 @@ const svgIsSafe = (file: Buffer) => {
 };
 
 const detectFormat = (file: Buffer, declaredType: string) => {
-  if (file.length >= 3 && file[0] === 0xff && file[1] === 0xd8 && file[2] === 0xff) return { mimeType: 'image/jpeg', extension: 'jpg' };
-  if (file.length >= 8 && file.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return { mimeType: 'image/png', extension: 'png' };
-  if (file.length >= 12 && file.toString('ascii', 0, 4) === 'RIFF' && file.toString('ascii', 8, 12) === 'WEBP') return { mimeType: 'image/webp', extension: 'webp' };
-  if (file.length >= 5 && file.toString('ascii', 0, 5) === '%PDF-') return { mimeType: 'application/pdf', extension: 'pdf' };
-  if (declaredType === 'image/svg+xml' && svgIsSafe(file)) return { mimeType: 'image/svg+xml', extension: 'svg' };
+  if (file.length >= 3 && file[0] === 0xff && file[1] === 0xd8 && file[2] === 0xff) return 'image/jpeg';
+  if (file.length >= 8 && file.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png';
+  if (file.length >= 12 && file.toString('ascii', 0, 4) === 'RIFF' && file.toString('ascii', 8, 12) === 'WEBP') return 'image/webp';
+  if (file.length >= 5 && file.toString('ascii', 0, 5) === '%PDF-') return 'application/pdf';
+  if (declaredType === 'image/svg+xml' && svgIsSafe(file)) return 'image/svg+xml';
   return undefined;
 };
 
-export async function storeUpload(upload: ParsedUpload): Promise<StoredUpload> {
-  if (upload.file.length === 0) throw new AppError('The uploaded file is empty', 400, 'EMPTY_FILE');
-  if (upload.file.length > uploadMaxBytes) throw new AppError('Files must be 10 MB or smaller', 413, 'UPLOAD_TOO_LARGE');
+export function validateStoredUpload(file: Buffer, declaredType: string) {
+  if (file.length === 0) throw new AppError('The uploaded file is empty', 400, 'EMPTY_FILE');
+  if (file.length > uploadMaxBytes) throw new AppError('Files must be 10 MiB or smaller', 413, 'UPLOAD_TOO_LARGE');
 
-  const format = detectFormat(upload.file, upload.contentType);
-    if (!format) {
-      const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml', 'application/pdf'];
-      if (supportedTypes.includes(upload.contentType)) throw new AppError('The file contents do not match the declared media type', 400, 'INVALID_FILE_SIGNATURE');
-      throw new AppError('Only JPEG, PNG, WebP, SVG, or PDF files are allowed', 415, 'UNSUPPORTED_MEDIA_TYPE');
-    }
-  if (format.mimeType !== upload.contentType && !(format.mimeType === 'image/jpeg' && upload.contentType === 'image/jpg')) {
+  const contentType = declaredType.trim().toLowerCase();
+  const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml', 'application/pdf'];
+  const detectedType = detectFormat(file, contentType);
+  if (!detectedType) {
+    if (supportedTypes.includes(contentType)) throw new AppError('The file contents do not match the declared media type', 400, 'INVALID_FILE_SIGNATURE');
+    throw new AppError('Only JPEG, PNG, WebP, SVG, or PDF files are allowed', 415, 'UNSUPPORTED_MEDIA_TYPE');
+  }
+  if (detectedType !== contentType && !(detectedType === 'image/jpeg' && contentType === 'image/jpg')) {
     throw new AppError('The file contents do not match the declared media type', 400, 'INVALID_FILE_SIGNATURE');
   }
-
-  const filename = `${randomUUID()}.${format.extension}`;
-  await mkdir(projectUploadsDirectory, { recursive: true });
-  await writeFile(join(projectUploadsDirectory, filename), upload.file, { flag: 'wx', mode: 0o644 });
-
-  return {
-    filename,
-    originalName: safeOriginalName(upload.originalName),
-    mimeType: format.mimeType,
-    size: upload.file.length,
-    url: `/uploads/${filename}`,
-    purpose: upload.purpose
-  };
+  return { mimeType: detectedType, size: file.length };
 }

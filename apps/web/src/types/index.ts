@@ -13,7 +13,9 @@ export type SocialLink = {
   ariaLabel?: string;
 };
 
-export type SkillCategory = 'AI / Machine Learning' | 'Generative AI / LLM' | 'Data / ML Infrastructure' | 'Software Engineering' | 'Cybersecurity' | 'Research / Tools';
+export type SkillCategory = 'Programming Languages' | 'Web Development' | 'Software Engineering' | 'Computer Science Fundamentals' | 'Databases and Data Management' | 'AI, ML, and Deep Learning' | 'Research Interests' | 'Systems, Cybersecurity, and Embedded Computing' | 'Academic and Scientific Computing';
+
+export type SkillEvidence = 'cv' | 'portfolio';
 
 export type Skill = {
   name: string;
@@ -22,11 +24,20 @@ export type Skill = {
   description?: string;
   level?: string;
   featured?: boolean;
+  evidence?: SkillEvidence;
 };
 
 export type SkillGroup = {
   category: SkillCategory;
   items: string[];
+};
+
+export type InterestArea = 'AI, ML, and Deep Learning' | 'Research Interests' | 'Systems, Cybersecurity, and Embedded Computing' | 'Academic and Scientific Computing';
+
+export type ResearchInterest = {
+  title: string;
+  description: string;
+  area?: InterestArea;
 };
 
 export type ProjectImage = {
@@ -163,7 +174,7 @@ export type Profile = {
   profileImageUrl?: string;
   hero: string;
   about: string;
-  researchInterests: string[];
+  researchInterests: ResearchInterest[];
   stats: Array<{ label: string; value: string }>;
   socials: SocialLink[];
   navigation: NavigationItem[];

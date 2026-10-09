@@ -5,7 +5,7 @@ export function AboutPage() {
   const { profile } = usePublicPortfolio();
   return (
     <>
-      <PageMeta title="About" description="Meet MD Mahtab Ahmed Mahin, an AI / ML Engineer focused on intelligent systems and responsible engineering." />
+      <PageMeta title="About" description="Meet MD Mahtab Ahmed Mahin, a CSE undergraduate focused on software engineering and exploring AI/ML." />
 
       <section className="py-8 md:py-12">
         <header className="max-w-4xl border-b border-border pb-9 md:pb-12">
@@ -21,7 +21,7 @@ export function AboutPage() {
           </div>
           <aside className="h-fit border-t border-primary pt-5">
             <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Current areas of curiosity</h2>
-            <ul className="mt-4 divide-y divide-border border-y border-border">{profile.aboutHighlights.map((item, index) => <li key={item} className="flex gap-4 py-3"><span className="font-mono text-xs text-accent-foreground">0{index + 1}</span><span className="text-sm text-foreground">{item}</span></li>)}</ul>
+            <ul className="mt-4 divide-y divide-border border-y border-border">{profile.aboutHighlights.map((item, index) => <li key={item} className="flex min-w-0 gap-4 py-3"><span className="font-mono text-xs text-accent-foreground">{String(index + 1).padStart(2, '0')}</span><span className="min-w-0 break-words text-sm text-foreground">{item}</span></li>)}</ul>
           </aside>
         </div>
         <div className="grid gap-6 border-t border-border pt-8 sm:grid-cols-3">

@@ -10,12 +10,12 @@ export function Footer() {
     <footer className="border-t border-border bg-muted/50">
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-10 sm:px-8">
         <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
-          <div className="space-y-2">
-            <p className="font-display text-2xl font-medium text-foreground">{profile.name}</p>
-            <p className="text-sm text-muted-foreground">{profile.title} · {profile.shortBio}</p>
+          <div className="min-w-0 space-y-2">
+            <p className="break-words font-display text-2xl font-medium text-foreground">{profile.name}</p>
+            <p className="break-words text-sm text-muted-foreground">{profile.title} · {profile.shortBio}</p>
           </div>
-          <nav aria-label="Footer navigation" className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 text-sm text-muted-foreground">
-            {profile.navigation.slice(0, 8).map((item) => <Link key={item.href} to={item.href} className="min-h-8 transition-colors hover:text-primary">{item.label}</Link>)}
+          <nav aria-label="Footer navigation" className="flex min-w-0 max-w-xl flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
+            {profile.navigation.map((item) => <Link key={item.href} to={item.href} className="inline-flex min-h-11 items-center transition-colors hover:text-primary">{item.label}</Link>)}
           </nav>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5 text-xs text-muted-foreground">
