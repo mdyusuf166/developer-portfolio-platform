@@ -31,7 +31,15 @@ const uploadClaims = (token: string) => {
       !payload.originalName || !payload.contentType || !Number.isInteger(payload.size) || !payload.exp) {
       throw new Error('invalid');
     }
-    return payload;
+    return {
+      sub: payload.sub,
+      objectKey: payload.objectKey,
+      originalName: payload.originalName,
+      contentType: payload.contentType,
+      size: payload.size,
+      purpose: payload.purpose,
+      exp: payload.exp
+    };
   } catch {
     throw new AppError('Upload authorization is invalid or expired', 401, 'UPLOAD_AUTHORIZATION_INVALID');
   }

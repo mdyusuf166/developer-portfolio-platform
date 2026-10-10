@@ -1,5 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build --workspace @devportfolio/web",
+  "outputDirectory": "apps/web/dist",
   "rewrites": [
     { "source": "/about", "destination": "/index.html" },
     { "source": "/skills", "destination": "/index.html" },
